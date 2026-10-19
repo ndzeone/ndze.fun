@@ -297,15 +297,21 @@ function footerHTML() {
 }
 
 /* ---------- Возврат с Discord: показать итог и убрать ?code=… из адреса ---------- */
+// api/discord-callback.php возвращает на страницу с ?auth=discord или ?auth=discord_error&reason=…
+const DISCORD_ERRORS = {
+  unreachable: "Сервер сайта не может связаться с Discord (в России он заблокирован). Войди по email.",
+  access_denied: "Вход через Discord отменён.",
+  not_configured: "Вход через Discord ещё не настроен.",
+  state: "Ссылка входа устарела — попробуй ещё раз.",
+};
 function handleOAuthReturn() {
   const url = new URL(location.href);
-  const keys = ["code", "error", "error_code", "error_description"];
-  if (!keys.some((k) => url.searchParams.has(k))) return;
-  const error = url.searchParams.get("error_description") || url.searchParams.get("error");
-  if (error) toast(`Вход через Discord не удался: ${error}`, "error", 6000);
-  // ?code= приходит и после Discord, и по ссылке подтверждения email (PKCE) — текст общий.
-  else if (user) toast(`Привет, ${user.nick}! Ты вошёл в аккаунт`);
-  keys.forEach((k) => url.searchParams.delete(k));
+  const auth = url.searchParams.get("auth");
+  if (!auth || !auth.startsWith("discord")) return;
+  if (auth === "discord" && user) toast(`Привет, ${user.nick}! Ты вошёл через Discord`);
+  else toast(DISCORD_ERRORS[url.searchParams.get("reason")] || "Не получилось войти через Discord — попробуй ещё раз.", "error", 7000);
+  url.searchParams.delete("auth");
+  url.searchParams.delete("reason");
   history.replaceState(history.state, "", url.pathname + url.search + url.hash);
 }
 
@@ -328,7 +334,7 @@ export async function mountLayout(page) {
   if (api.mode === "local") {
     const banner = document.createElement("div");
     banner.className = "demo-banner";
-    banner.innerHTML = `<span>⚠ Демо-режим: аккаунты и работы хранятся только в этом браузере.</span><span>Чтобы фанаты могли присылать работы, подключи базу — см. <b>SUPABASE.md</b></span>`;
+    banner.innerHTML = `<span>⚠ Демо-режим: аккаунты и работы хранятся только в этом браузере.</span><span>Это локальный просмотр — на ndze.fun работает настоящая база.</span>`;
     header.before(banner);
   }
 

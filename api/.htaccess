@@ -1,0 +1,12 @@
+# api/: из браузера доступны только index.php, discord-login.php, discord-callback.php.
+# Секреты (config.php), схема базы и примеры закрыты. Options/php_value здесь не используем —
+# на хостинге с PHP через CGI/FPM они дают 500 (настройки PHP — в api/.user.ini).
+<FilesMatch "^(config\.php|config\..*\.php|.*\.example\.php|schema\.sql|.*\.sql|.*\.md|\.user\.ini|\.ht.*)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>

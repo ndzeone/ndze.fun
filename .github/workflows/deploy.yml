@@ -1,8 +1,13 @@
 # Деплой сайта на хостинг Timeweb (ndze.fun) при каждом push в main.
 # Секреты (Settings → Secrets and variables → Actions → New repository secret):
 #   TIMEWEB_PASSWORD  — пароль от хостинга (обязательно)
+#   DB_NAME, DB_USER, DB_PASS — база MySQL из панели Timeweb (DB_HOST — если не localhost)
+#   ADMIN_EMAILS      — email админа (через запятую, если несколько)
+#   DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET — приложение Discord для входа (необязательно)
+#   ADMIN_DISCORD_IDS — Discord id админа (необязательно)
 #   REPOS_TOKEN       — токен GitHub «Metadata: Read-only» на все репозитории (необязательно;
 #                       с ним на сайте появятся и закрытые репозитории)
+# Из секретов при каждом деплое собирается api/config.php — в репозитории его нет.
 name: Deploy to ndze.fun
 
 on:
@@ -27,7 +32,75 @@ env:
   DEPLOY_HOST_KEY: "vh466.timeweb.ru ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJkls3fNBXfNiF5nqwuZW5Xp7RUq+hmhiRjyDBdoTUJ"
 
 jobs:
+  # Интеграционные тесты API (tests/api-test.php) на чистой MySQL 8 — без них деплоя не будет.
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root_test_pw
+          MYSQL_DATABASE: ndze_test
+          MYSQL_USER: ndze
+          MYSQL_PASSWORD: ndze_test_pw
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot_test_pw"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    env:
+      API_BASE: http://127.0.0.1:8090
+      TEST_DB_DSN: "mysql:host=127.0.0.1;port=3306;dbname=ndze_test"
+      TEST_DB_USER: ndze
+      TEST_DB_PASS: ndze_test_pw
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: pdo_mysql, gd, curl, fileinfo, mbstring
+          ini-values: upload_max_filesize=12M, post_max_size=64M, date.timezone=UTC
+          coverage: none
+
+      - name: Собрать тестовый api/config.php
+        run: |
+          mkdir -p "$RUNNER_TEMP/storage"
+          php -r '
+            $c = [
+              "db" => ["host" => "127.0.0.1", "port" => 3306, "name" => "ndze_test", "user" => "ndze", "pass" => "ndze_test_pw"],
+              "discord" => ["client_id" => "", "client_secret" => "", "redirect_uri" => "http://127.0.0.1:8090/api/discord-callback.php"],
+              "admin_emails" => ["ndze-admin@example.com"],
+              "admin_discord_ids" => [],
+              "storage_dir" => getenv("RUNNER_TEMP") . "/storage",
+              "debug" => false,
+            ];
+            file_put_contents("api/config.php", "<?php\nreturn " . var_export($c, true) . ";\n");
+          '
+          php -l api/config.php
+          for f in $(find api tests -name "*.php"); do php -l "$f" >/dev/null || exit 1; done
+
+      - name: Запустить PHP-сервер
+        run: |
+          php -d display_errors=0 -d log_errors=1 -d error_log="$RUNNER_TEMP/php-error.log" \
+            -S 127.0.0.1:8090 -t . > "$RUNNER_TEMP/php-server.log" 2>&1 &
+          for i in $(seq 1 40); do curl -s -o /dev/null http://127.0.0.1:8090/index.html && exit 0; sleep 0.5; done
+          echo "::error::php -S не запустился"; cat "$RUNNER_TEMP/php-server.log"; exit 1
+
+      - name: Интеграционные тесты API
+        run: php tests/api-test.php "$API_BASE"
+
+      - name: Логи PHP (при ошибке)
+        if: failure()
+        run: |
+          echo "--- php-error.log ---"; cat "$RUNNER_TEMP/php-error.log" 2>/dev/null || true
+          echo "--- php-server.log (хвост) ---"; tail -n 200 "$RUNNER_TEMP/php-server.log" 2>/dev/null || true
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -57,11 +130,40 @@ jobs:
         run: |
           test -f index.html
           python3 -c "import json; d=json.load(open('data/repos.json', encoding='utf-8')); print(len(d['repos']), 'repos')"
-          # в выкладку не должен попасть секретный ключ Supabase (service_role / sb_secret_) — только публичный anon.
-          # "role":"service_role" внутри JWT — base64 в одном из трёх сдвигов
-          if grep -rIlE "service_role|sb_secret_|c2VydmljZV9yb2xl|cnZpY2Vfcm9s|ZXJ2aWNlX3Jv" assets data ./*.html ; then
-            echo "::error::В файлах сайта найден секретный ключ service_role — убери его"; exit 1
+          # в файлах сайта не должно быть токенов и паролей (секреты живут только в GitHub Secrets)
+          if grep -rIlE "github_pat_[A-Za-z0-9]|ghp_[A-Za-z0-9]{20}|BEGIN [A-Z ]*PRIVATE KEY" assets data api ./*.html ; then
+            echo "::error::В файлах сайта найден секрет — убери его"; exit 1
           fi
+
+      - name: Собрать api/config.php из секретов
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+          DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+          ADMIN_DISCORD_IDS: ${{ secrets.ADMIN_DISCORD_IDS }}
+        run: |
+          if [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASS" ]; then
+            echo "::warning::Нет секретов DB_NAME / DB_USER / DB_PASS — аккаунты и работы на сайте работать не будут"
+            exit 0
+          fi
+          # var_export экранирует значения — никакие символы в паролях не ломают PHP
+          php -r '
+            $list = fn($v) => array_values(array_filter(array_map("trim", explode(",", (string) $v))));
+            $c = [
+              "db" => ["host" => getenv("DB_HOST") ?: "localhost", "name" => getenv("DB_NAME"), "user" => getenv("DB_USER"), "pass" => getenv("DB_PASS")],
+              "discord" => ["client_id" => getenv("DISCORD_CLIENT_ID") ?: "", "client_secret" => getenv("DISCORD_CLIENT_SECRET") ?: "", "redirect_uri" => "https://ndze.fun/api/discord-callback.php"],
+              "admin_emails" => array_map("strtolower", $list(getenv("ADMIN_EMAILS"))),
+              "admin_discord_ids" => $list(getenv("ADMIN_DISCORD_IDS")),
+              "storage_dir" => null,
+              "debug" => false,
+            ];
+            file_put_contents("api/config.php", "<?php\n// Создано GitHub Actions при деплое. Не редактируй на сервере — перезапишется.\nreturn " . var_export($c, true) . ";\n");
+          '
+          php -l api/config.php
 
       - name: Выложить на хостинг (rsync по SSH)
         env:
@@ -80,6 +182,11 @@ jobs:
             --exclude-from=.deployignore \
             -e "ssh -o StrictHostKeyChecking=yes -o PubkeyAuthentication=no" \
             ./ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH"
+          # секреты читает только владелец аккаунта хостинга
+          if [ -f api/config.php ]; then
+            sshpass -e ssh -o StrictHostKeyChecking=yes -o PubkeyAuthentication=no "$DEPLOY_USER@$DEPLOY_HOST" \
+              "chmod 600 ${DEPLOY_PATH}api/config.php"
+          fi
 
       - name: Проверить, что сайт открывается
         continue-on-error: true # пока DNS домена не настроен, шаг может не пройти

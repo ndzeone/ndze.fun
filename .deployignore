@@ -6,7 +6,7 @@
 .gitignore
 .deployignore
 /tools/
-/supabase/
+/api/config.example.php
 /tests/
 *.md
 /start.bat

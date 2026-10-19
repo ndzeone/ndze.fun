@@ -1,7 +1,7 @@
 // Демо-бэкенд: всё хранится в IndexedDB этого браузера.
-// Нужен, чтобы сайт полностью работал до подключения Supabase.
-// Права проверяются так же, как в supabase/schema.sql, но это не защита —
-// любой может открыть DevTools. Для настоящих пользователей — Supabase.
+// Нужен для локального просмотра (start.bat не умеет PHP).
+// Права проверяются так же, как в api/ на сервере, но это не защита —
+// любой может открыть DevTools. Для настоящих пользователей — php.js + MySQL.
 import { ApiError } from "./errors.js";
 import { LIMITS } from "./constants.js";
 import {
@@ -157,7 +157,7 @@ export function createLocalBackend() {
     },
 
     async signInWithOAuth() {
-      throw new ApiError("validation", "Вход через Discord заработает после подключения онлайн-базы (Supabase)");
+      throw new ApiError("validation", "Вход через Discord работает на сайте ndze.fun (в локальном демо-режиме его нет)");
     },
 
     async signOut() {

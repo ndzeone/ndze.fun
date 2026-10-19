@@ -149,7 +149,7 @@ root.addEventListener("click", (e) => {
 
 /* ---------- Дашборд ---------- */
 function shell() {
-  const local = api.mode !== "supabase";
+  const local = api.mode !== "php";
   return `
   <section class="admin-block" aria-labelledby="statsTitle">
     <div class="section-head">
@@ -201,11 +201,11 @@ function shell() {
         <article class="info-card glass">
           <h3>Режим данных</h3>
           <p class="mode-line">
-            <span class="badge ${local ? "warn" : "lime"}">${local ? "Демо · local" : "Supabase"}</span>
+            <span class="badge ${local ? "warn" : "lime"}">${local ? "Демо · local" : "MySQL · хостинг"}</span>
           </p>
           <p class="muted">${local
-            ? "Аккаунты, работы и задания хранятся только в IndexedDB этого браузера. Чтобы зрители могли присылать работы, заполни <code>supabase</code> в <code>assets/js/config.js</code> — инструкция в <code>SUPABASE.md</code>."
-            : "Сайт подключён к онлайн-базе Supabase: данные общие для всех посетителей, права проверяются политиками RLS."}</p>
+            ? "Это локальный просмотр: аккаунты, работы и задания хранятся только в IndexedDB этого браузера. На ndze.fun сайт работает с базой MySQL на хостинге."
+            : "Сайт подключён к базе MySQL на хостинге Timeweb: данные общие для всех посетителей, права проверяет сервер (api/)."}</p>
         </article>
         <article class="info-card glass">
           <h3>Как обновить список репозиториев</h3>

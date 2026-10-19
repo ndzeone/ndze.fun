@@ -1,13 +1,13 @@
 // Единая точка доступа к данным. Страницы импортируют только `api` отсюда
-// и не знают, какой бэкенд под капотом:
-//   • SupabaseBackend — если в config.js заполнены supabase.url и supabase.anonKey;
-//   • LocalBackend    — демо-режим: IndexedDB этого браузера.
+// и не знают, какой бэкенд под капотом (SITE.backend в config.js):
+//   • PhpBackend   — PHP + MySQL на хостинге (api/, протокол — API.md);
+//   • LocalBackend — демо-режим: IndexedDB этого браузера.
 //
 // Все методы асинхронные и при ошибке бросают ApiError (см. errors.js).
 //
 // ───────────────────────────── Контракт ─────────────────────────────
 // Типы:
-//   User       = { id, nick, email, role: "admin"|"user", createdAt }
+//   User       = { id, nick, email: string|null, role: "admin"|"user", createdAt }   // email null — вход через Discord без email
 //   Version    = { id, n, imageUrls: string[], note, createdAt }          // n — номер версии с 1
 //   Comment    = { id, userId, authorNick, isAdmin, text, createdAt }
 //   Submission = { id, userId, authorNick, title, description, category, status, rating: number|null,
@@ -20,7 +20,7 @@
 //   Справочники id: CATEGORIES / SUB_STATUSES / GAMES / TASK_STATUSES в constants.js
 //
 // Аккаунт:
-//   api.mode                                     → "local" | "supabase"
+//   api.mode                                     → "local" | "php"
 //   api.getUser()                                → User | null
 //   api.signUp({ nick, email, password })        → User      (email_taken | nick_taken | validation)
 //   api.signIn({ email, password })              → User      (invalid_credentials)
@@ -52,10 +52,8 @@
 
 import { SITE } from "../config.js";
 
-const useSupabase = Boolean(SITE.supabase?.url && SITE.supabase?.anonKey);
-
-export const api = useSupabase
-  ? (await import("./supabase.js")).createSupabaseBackend(SITE.supabase)
+export const api = SITE.backend === "php"
+  ? (await import("./php.js")).createPhpBackend()
   : (await import("./local.js")).createLocalBackend();
 
 export { ApiError, toApiError } from "./errors.js";

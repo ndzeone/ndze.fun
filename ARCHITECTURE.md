@@ -19,22 +19,22 @@
 ```
 assets/css/base.css          общий дизайн: токены, шапка, кнопки, формы, .modal, .badge, .chip, тосты, .empty, .skeleton
 assets/css/<page>.css        стили одной страницы
-assets/js/config.js          ник, Twitch, YouTube, GitHub, ключи Supabase
+assets/js/config.js          ник, Twitch, YouTube, GitHub, выбор бэкенда (php / local)
 assets/js/core/util.js       $, $$, esc, plural, timeAgo, formatDate, toast, initial, motion, fancyCursor
 assets/js/core/fx.js         курсор, паутина на фоне, initMagnetic, initReveal, initTilt, onFrame, mouse
 assets/js/core/modal.js      setupModal(dialog) → { open, close }, shake(card)
 assets/js/core/layout.js     mountLayout(page), getUser(), onUserChange(cb), openAuth(tab, reason)
 assets/js/data/api.js        api — контракт всех методов данных (см. комментарий в файле)
 assets/js/data/local.js      демо-бэкенд (IndexedDB) — эталонная реализация контракта
-assets/js/data/supabase.js   боевой бэкенд (Supabase), та же семантика
+assets/js/data/php.js        боевой бэкенд: запросы к api/ (PHP + MySQL на хостинге), та же семантика
 assets/js/data/constants.js  CATEGORIES, SUB_STATUSES, GAMES, TASK_STATUSES, DIFFICULTIES, LIMITS
 assets/js/data/validate.js   check*() — проверка полей (используют и формы, и бэкенды)
 assets/js/data/errors.js     ApiError { code, message, fields }
 assets/js/data/github.js     loadRepos, getRepo, getTree, getFileText, getReadme, rawUrl, LANG_COLORS
 assets/js/pages/<page>.js    логика страницы
 data/repos.json              снимок репозиториев (делает tools/sync-github.ps1)
-supabase/schema.sql          таблицы, RLS-политики, хранилище картинок
-tests/db-check.html          автотест прав базы Supabase (localhost, на хостинг не выкладывается; см. SUPABASE.md)
+api/                         PHP-сервер: index.php (маршруты), discord-*.php, lib/, schema.sql — протокол в API.md
+tests/api-test.php           автотесты API на настоящей MySQL (запускаются в GitHub Actions перед деплоем)
 ```
 
 ## Шаблон страницы
@@ -79,7 +79,7 @@ onUserChange((u) => { /* перерисовать то, что зависит о
 ## Правила
 
 - **Безопасность:** любой текст от пользователя выводить через `esc()` или `textContent`. Никакого `innerHTML` с сырыми данными.
-- **Права проверяет сервер** (RLS в Supabase). В интерфейсе кнопки админа просто скрыты у обычных пользователей.
+- **Права проверяет сервер** (api/ на хостинге). В интерфейсе кнопки админа просто скрыты у обычных пользователей.
 - **Ошибки:** все методы `api` бросают `ApiError`; показывать `err.message`, ошибки по полям — `err.fields`.
 - **Доступность:** у полей `<label>`, ошибки связаны через `aria-describedby`, фокус виден, всё работает с клавиатуры.
 - **Анимации** уважают `prefers-reduced-motion` (флаг `motion` из util.js) и не мешают на телефонах (`fancyCursor`).
