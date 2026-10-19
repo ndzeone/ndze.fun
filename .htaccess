@@ -14,12 +14,12 @@ AddType text/javascript .js
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # HTTPS: раскомментируй 4 строки ниже ПОСЛЕ выпуска SSL-сертификата в панели Timeweb
-  # (иначе сайт уйдёт в редирект на неработающий https)
-  # RewriteCond %{HTTPS} !=on
-  # RewriteCond %{HTTP:X-Forwarded-Proto} !=https
-  # RewriteCond %{HTTP_HOST} ^(www\.)?ndze\.fun$ [NC]
-  # RewriteRule ^ https://ndze.fun%{REQUEST_URI} [L,R=301]
+  # HTTP → HTTPS (сертификат Let's Encrypt выпускает Timeweb; проверки продления в .well-known не трогаем)
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteCond %{HTTP_HOST} ^(www\.)?ndze\.fun$ [NC]
+  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  RewriteRule ^ https://ndze.fun%{REQUEST_URI} [L,R=301]
 
   # www.ndze.fun → ndze.fun
   RewriteCond %{HTTP_HOST} ^www\.ndze\.fun$ [NC]
