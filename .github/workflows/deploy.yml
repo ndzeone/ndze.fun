@@ -142,7 +142,7 @@ jobs:
           fi
 
       - name: Версия к скриптам и стилям (сброс кэша браузеров)
-        run: python3 tools/stamp-assets.py "${GITHUB_SHA::10}"
+        run: php tools/stamp-assets.php "${GITHUB_SHA::10}"
 
       - name: Собрать api/config.php из секретов
         env:
