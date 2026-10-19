@@ -8,7 +8,7 @@ import { CATEGORIES, SUB_STATUSES, LIMITS, byId } from "../data/constants.js";
 import { checkSubmission, checkVersion, checkComment, checkFiles } from "../data/validate.js";
 import { setupModal, shake } from "../core/modal.js";
 import { initTilt } from "../core/fx.js";
-import { $, $$, esc, plural, timeAgo, formatDate, formatBytes, toast, initial, clamp } from "../core/util.js";
+import { $, $$, esc, plural, timeAgo, formatDate, formatBytes, toast, avatarHTML, clamp } from "../core/util.js";
 
 let user = await mountLayout("review");
 
@@ -297,7 +297,7 @@ function cardHTML(s, i) {
           <span class="sr-only">Оценка: </span>${s.rating ? `${s.rating}<small>/10</small>` : "—"}
         </span>
       </div>
-      <p class="sub-meta"><span class="sub-author">@${esc(s.authorNick)}</span><span class="dot" aria-hidden="true"></span><span>${esc(catLabel(s.category))}</span></p>
+      <p class="sub-meta"><span class="sub-author">${avatarHTML(s.authorNick, s.authorAvatar, { size: "xs" })}@${esc(s.authorNick)}</span><span class="dot" aria-hidden="true"></span><span>${esc(catLabel(s.category))}</span></p>
       <p class="sub-foot">
         <span title="Комментарии">${ICON.comment}<span class="sr-only">Комментариев: </span>${c}</span>
         <span title="Версии">${ICON.layers}<span class="sr-only">Версий: </span>${v}</span>
@@ -682,7 +682,7 @@ function commentsHTML(s) {
   const canWrite = !!user && (isOwner(s) || isAdmin());
   const items = s.comments.map((c) => `
     <li class="comment${c.isAdmin ? " is-admin" : ""}">
-      <span class="avatar sm${c.isAdmin ? "" : " ghost"}" aria-hidden="true">${esc(initial(c.isAdmin ? SITE.nick : c.authorNick))}</span>
+      ${avatarHTML(c.isAdmin ? SITE.nick : c.authorNick, c.authorAvatar, { size: "sm", extra: c.isAdmin ? "" : "ghost" })}
       <div class="comment-body">
         <p class="comment-head">
           <b>${esc(c.isAdmin ? SITE.nick : c.authorNick)}</b>
@@ -724,7 +724,7 @@ function detailHTML(s) {
         </div>
         <h2 id="dTitle" tabindex="-1">${esc(s.title)}</h2>
         <p class="d-meta">
-          <span class="sub-author">@${esc(s.authorNick)}</span>
+          <span class="sub-author">${avatarHTML(s.authorNick, s.authorAvatar, { size: "xs" })}@${esc(s.authorNick)}</span>
           <span class="dot" aria-hidden="true"></span>
           <span>отправлено <time datetime="${esc(s.createdAt)}">${esc(formatDate(s.createdAt))}</time></span>
           <span class="dot" aria-hidden="true"></span>

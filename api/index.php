@@ -22,6 +22,13 @@ const ROUTES = [
     'POST task/vote' => 'route_task_vote',
     'POST task/update' => 'route_task_update',
     'POST task/delete' => 'route_task_delete',
+    'GET me/profile' => 'route_profile',
+    'POST me/update' => 'route_profile_update',
+    'POST me/password' => 'route_password_change',
+    'POST me/avatar' => 'route_avatar_upload',
+    'POST me/avatar/delete' => 'route_avatar_delete',
+    'POST me/discord/unlink' => 'route_discord_unlink',
+    'GET avatar' => 'route_avatar',
     'GET stats' => 'route_stats',
     'GET health' => 'route_health',
     'GET health/discord' => 'route_health_discord',
@@ -64,7 +71,7 @@ try {
         throw new ApiError('unknown', 'Сервер ещё не настроен (нет api/config.php)', null, 503);
     }
     $data = $handler();
-    if ($route !== 'image') respond_ok($data);
+    if ($route !== 'image' && $route !== 'avatar') respond_ok($data); // картинки отдаются сами
 } catch (ApiError $e) {
     respond_error($e);
 } catch (Throwable $e) {

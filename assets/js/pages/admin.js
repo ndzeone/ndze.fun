@@ -5,7 +5,7 @@ import { api, toApiError } from "../data/api.js";
 import { SITE } from "../config.js";
 import { GAMES, TASK_STATUSES, SUB_STATUSES, CATEGORIES, DIFFICULTIES, byId } from "../data/constants.js";
 import { initTilt, initMagnetic } from "../core/fx.js";
-import { $, $$, esc, plural, timeAgo, toast, motion, wait } from "../core/util.js";
+import { $, $$, esc, plural, timeAgo, toast, motion, wait, avatarHTML } from "../core/util.js";
 
 const user = await mountLayout("admin");
 const root = $("#adminRoot");
@@ -275,7 +275,7 @@ function renderSubs(subs) {
       <a class="q-thumb" href="${esc(href)}" tabindex="-1" aria-hidden="true">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : ICONS.img}</a>
       <div class="q-body">
         <a class="q-title" href="${esc(href)}">${esc(s.title)}</a>
-        <span class="q-meta"><b>${esc(s.authorNick)}</b> · <time datetime="${esc(s.updatedAt)}">${esc(timeAgo(s.updatedAt))}</time>${cat ? ` · ${esc(cat)}` : ""}${v && v.n > 1 ? ` · <span class="v-tag">v${v.n}</span>` : ""}</span>
+        <span class="q-meta">${avatarHTML(s.authorNick, s.authorAvatar, { size: "xs" })}<b>${esc(s.authorNick)}</b> · <time datetime="${esc(s.updatedAt)}">${esc(timeAgo(s.updatedAt))}</time>${cat ? ` · ${esc(cat)}` : ""}${v && v.n > 1 ? ` · <span class="v-tag">v${v.n}</span>` : ""}</span>
       </div>
       <a class="btn btn-ghost btn-xs" href="${esc(href)}">Оценить</a>
     </li>`;
@@ -298,7 +298,7 @@ function renderTasks() {
       <span class="q-game" title="${esc(g.label)}">${esc(g.short)}</span>
       <div class="q-body">
         <a class="q-title" href="${esc(href)}">${esc(t.title)}</a>
-        <span class="q-meta"><b>${esc(t.authorNick)}</b> · ${esc(timeAgo(t.createdAt))} · ▲ ${t.votes}${d ? ` · ${esc(d.label)}` : ""}</span>
+        <span class="q-meta">${avatarHTML(t.authorNick, t.authorAvatar, { size: "xs" })}<b>${esc(t.authorNick)}</b> · ${esc(timeAgo(t.createdAt))} · ▲ ${t.votes}${d ? ` · ${esc(d.label)}` : ""}</span>
       </div>
       <div class="q-actions">
         <button class="btn btn-primary btn-xs" type="button" data-task-act="accepted" aria-label="Принять: ${esc(t.title)}">Принять</button>

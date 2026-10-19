@@ -7,14 +7,17 @@
 //
 // ───────────────────────────── Контракт ─────────────────────────────
 // Типы:
-//   User       = { id, nick, email: string|null, role: "admin"|"user", createdAt }   // email null — вход через Discord без email
+//   User       = { id, nick, email: string|null, role: "admin"|"user", avatarUrl: string|null, createdAt }
+//                  // email null — вход через Discord без email; avatarUrl null — показываем первую букву ника
 //   Version    = { id, n, imageUrls: string[], note, createdAt }          // n — номер версии с 1
-//   Comment    = { id, userId, authorNick, isAdmin, text, createdAt }
-//   Submission = { id, userId, authorNick, title, description, category, status, rating: number|null,
+//   Comment    = { id, userId, authorNick, authorAvatar: string|null, isAdmin, text, createdAt }
+//   Submission = { id, userId, authorNick, authorAvatar, title, description, category, status, rating: number|null,
 //                  createdAt, updatedAt, versions: Version[], comments: Comment[] }
 //                  // versions по возрастанию n, comments по возрастанию createdAt
-//   Task       = { id, userId, authorNick, game, title, description, difficulty: 1|2|3, status,
+//   Task       = { id, userId, authorNick, authorAvatar, game, title, description, difficulty: 1|2|3, status,
 //                  adminNote: string|null, votes: number, myVote: boolean, createdAt, updatedAt }
+//   Profile    = { user: User, hasPassword: boolean, discordLinked: boolean,
+//                  stats: { submissions, ideal, avgRating: number|null, tasks, tasksDone, votesReceived } }
 //   Stats      = { users, submissions: { total, pending, revision, ideal, rejected },
 //                  tasks: { total, new, accepted, live, done, rejected } }
 //   Справочники id: CATEGORIES / SUB_STATUSES / GAMES / TASK_STATUSES в constants.js
@@ -26,7 +29,16 @@
 //   api.signIn({ email, password })              → User      (invalid_credentials)
 //   api.signInWithOAuth("discord")               → void      (уводит на Discord и обратно; в демо-режиме — validation)
 //   api.signOut()                                → void
-//   api.onAuthChange(cb)                         → unsubscribe()   // cb(User|null) при входе/выходе
+//   api.onAuthChange(cb)                         → unsubscribe()   // cb(User|null) при входе/выходе и смене ника/аватарки
+//
+// Личный кабинет (нужен вход):
+//   api.getProfile()                             → Profile
+//   api.updateProfile({ nick })                  → User      (nick_taken | validation | rate_limited)
+//   api.changePassword({ currentPassword, newPassword, hasPassword }) → void  (validation: currentPassword — неверный)
+//   api.uploadAvatar(file)                       → User      (квадрат 256×256, обрезка по центру)
+//   api.removeAvatar()                           → User
+//   api.linkDiscord()                            → void      (уводит на Discord; вернёт ?auth=discord_linked)
+//   api.unlinkDiscord()                          → Profile   (validation, если нет email+пароля)
 //
 // Работы на оценку (видит: автор, админ; со статусом "ideal" — все, это публичная галерея):
 //   api.listSubmissions({ scope })               scope: "mine" (свои) | "all" (только админ) | "gallery" (ideal, публично)

@@ -10,7 +10,7 @@
 import { SITE } from "../config.js";
 import { api } from "../data/api.js";
 import { checkSignIn, checkSignUp } from "../data/validate.js";
-import { $, $$, esc, initial, wait, motion, toast } from "./util.js";
+import { $, $$, esc, avatarHTML, wait, motion, toast } from "./util.js";
 import { initFx } from "./fx.js";
 import { setupModal, shake } from "./modal.js";
 
@@ -23,7 +23,7 @@ export const NAV = [
 ];
 
 const LOGO_SVG = `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v26M3 16h26M6.8 6.8l18.4 18.4M25.2 6.8L6.8 25.2" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="16" r="4.5" fill="currentColor"/><circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".6"/></svg>`;
-const DISCORD_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.6 0L8.6 3a19.5 19.5 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18a19.7 19.7 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.6 19.6 0 0 0 6-3c.5-5.1-.8-9.6-3.6-13.6ZM8 15.3c-1.2 0-2.2-1.1-2.2-2.4S6.8 10.5 8 10.5s2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>`;
+export const DISCORD_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.6 0L8.6 3a19.5 19.5 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18a19.7 19.7 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.6 19.6 0 0 0 6-3c.5-5.1-.8-9.6-3.6-13.6ZM8 15.3c-1.2 0-2.2-1.1-2.2-2.4S6.8 10.5 8 10.5s2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>`;
 const EYE_SVG =`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>`;
 
 let user = null;
@@ -60,9 +60,12 @@ function renderUserSlot() {
   const slot = $("#userSlot");
   if (user) {
     slot.innerHTML = `<div class="user-chip">
-      <span class="avatar" aria-hidden="true">${esc(initial(user.nick))}</span>
-      <span class="user-name">${esc(user.nick)}</span>
-      ${user.role === "admin" ? '<span class="role-badge">admin</span>' : ""}
+      <a class="user-chip-link" href="profile.html" title="Личный кабинет"${pageId === "profile" ? ' aria-current="page"' : ""}>
+        ${avatarHTML(user.nick, user.avatarUrl)}
+        <span class="user-name">${esc(user.nick)}</span>
+        ${user.role === "admin" ? '<span class="role-badge">admin</span>' : ""}
+        <span class="sr-only">— личный кабинет</span>
+      </a>
       <button class="link-btn" type="button" data-logout>Выйти</button>
     </div>`;
   } else {
@@ -71,7 +74,8 @@ function renderUserSlot() {
 }
 
 function setUser(next) {
-  const changed = (next?.id ?? null) !== (user?.id ?? null) || next?.role !== user?.role;
+  const changed = (next?.id ?? null) !== (user?.id ?? null) || next?.role !== user?.role
+    || next?.nick !== user?.nick || next?.avatarUrl !== user?.avatarUrl;
   user = next;
   renderNav();
   renderUserSlot();
@@ -303,12 +307,16 @@ const DISCORD_ERRORS = {
   access_denied: "Вход через Discord отменён.",
   not_configured: "Вход через Discord ещё не настроен.",
   state: "Ссылка входа устарела — попробуй ещё раз.",
+  discord_taken: "Этот Discord уже привязан к другому аккаунту на сайте.",
+  already_linked: "К твоему аккаунту уже привязан другой Discord — сначала отвяжи его.",
+  unlinked: "Этот Discord отвязан от аккаунта. Войди по email и паролю — привязать снова можно в личном кабинете.",
 };
 function handleOAuthReturn() {
   const url = new URL(location.href);
   const auth = url.searchParams.get("auth");
   if (!auth || !auth.startsWith("discord")) return;
-  if (auth === "discord" && user) toast(`Привет, ${user.nick}! Ты вошёл через Discord`);
+  if (auth === "discord_linked") toast("Discord привязан к аккаунту 🎉");
+  else if (auth === "discord" && user) toast(`Привет, ${user.nick}! Ты вошёл через Discord`);
   else toast(DISCORD_ERRORS[url.searchParams.get("reason")] || "Не получилось войти через Discord — попробуй ещё раз.", "error", 7000);
   url.searchParams.delete("auth");
   url.searchParams.delete("reason");

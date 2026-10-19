@@ -126,3 +126,23 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO schema_version (version, applied_at) VALUES (1, UTC_TIMESTAMP(3));
+
+-- v2: профиль (личный кабинет). Аватарка: <storage>/avatars/<avatar_file>, квадрат 256×256.
+-- avatar_source: 'upload' — загрузил сам, 'discord' — взята из Discord при входе, 'removed' — удалил (из Discord больше не берём).
+-- discord_avatar — хеш аватарки Discord, чтобы не скачивать её заново при каждом входе.
+-- discord_unlinked — Discord id, который пользователь отвязал: вход им больше не привязывается к аккаунту по email.
+-- auth_epoch — растёт при смене пароля / отвязке Discord; сессии со старым значением считаются вышедшими.
+CREATE TABLE IF NOT EXISTS user_profiles (
+  user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  avatar_file VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  avatar_source VARCHAR(8) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  discord_avatar VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  discord_unlinked VARCHAR(32) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  auth_epoch INT UNSIGNED NOT NULL DEFAULT 0,
+  updated_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (user_id),
+  KEY ix_profile_unlinked (discord_unlinked),
+  CONSTRAINT fk_profile_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
+INSERT IGNORE INTO schema_version (version, applied_at) VALUES (2, UTC_TIMESTAMP(3));

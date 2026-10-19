@@ -140,7 +140,19 @@ html.cursor-on .cursor-dot, html.cursor-on .cursor-ring { opacity: 1; }
   background: linear-gradient(135deg, var(--lime), var(--forest)); color: var(--black);
   font: 700 1rem var(--pixel); box-shadow: 0 0 18px rgba(93, 214, 44, .45);
 }
+.avatar { position: relative; overflow: hidden; }
 .avatar.sm { width: 28px; height: 28px; font-size: .85rem; }
+.avatar.xs {
+  display: inline-grid; vertical-align: -5px; width: 20px; height: 20px; margin-right: 6px;
+  font-size: .62rem; box-shadow: none;
+}
+.avatar.lg { width: 56px; height: 56px; font-size: 1.5rem; }
+.avatar.xl { width: 132px; height: 132px; font-size: 3.4rem; }
+.avatar > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.avatar.has-img { background: var(--graphite); color: transparent; }
+.user-chip-link { display: flex; align-items: center; gap: 10px; padding: 3px 12px 3px 3px; border-radius: var(--pill); transition: background-color .2s; }
+.user-chip-link:hover, .user-chip-link[aria-current="page"] { background: rgba(248, 248, 248, .07); }
+.user-chip-link[aria-current="page"] .avatar { box-shadow: 0 0 0 2px var(--black), 0 0 0 4px var(--lime); }
 .user-name { font-weight: 700; max-width: 14ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .role-badge { font: 600 .7rem var(--pixel); color: var(--black); background: var(--lime); padding: 1px 8px; border-radius: var(--pill); text-transform: uppercase; }
 .link-btn { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: .85rem; padding: 4px; }

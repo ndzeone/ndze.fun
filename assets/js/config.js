@@ -19,8 +19,29 @@ export const SITE = {
   socials: [
     { label: "Twitch", url: "https://www.twitch.tv/ndze_one" },
     { label: "YouTube", url: "https://www.youtube.com/@ndzeone" },
+    { label: "Discord", url: "https://discord.gg/fARfeAYWmb" },
     { label: "GitHub", url: "https://github.com/ndzeone" },
     { label: "NovaRP", url: "https://novarp.ru/" },
+  ],
+
+  // Discord-серверы на главной. Название, иконку и число участников tools/sync-discord.ps1
+  // при каждом деплое кладёт в data/discord.json; онлайн браузер уточняет у Discord вживую.
+  // accent — цвет неоновой подсветки карточки.
+  discord: [
+    {
+      invite: "fARfeAYWmb",
+      kind: "Сервер для общения",
+      accent: "#8b6cff",
+      tagline: "Мой сервер: общаемся, сидим в войсах, обсуждаем стримы и ловим анонсы первыми.",
+      perks: ["Анонсы стримов", "Войсы и чат", "Ивенты"],
+    },
+    {
+      invite: "9UgDQJJFyb",
+      kind: "Проект с другом",
+      accent: "#2fd673",
+      tagline: "MythosMC — наш с другом Minecraft-сервер: выживание и RPG. Заходи следить за разработкой и играть первым.",
+      perks: ["Minecraft", "Survival", "RPG"],
+    },
   ],
 
   // Где хранятся аккаунты, работы и задания:

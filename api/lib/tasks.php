@@ -3,10 +3,10 @@
 declare(strict_types=1);
 defined('NDZE') || exit;
 
-const TASK_SELECT = 'SELECT t.*, u.nick AS author_nick,
+const TASK_SELECT = 'SELECT t.*, u.nick AS author_nick, ap.avatar_file AS author_avatar,
     (SELECT COUNT(*) FROM task_votes v WHERE v.task_id = t.id) AS votes,
     (SELECT COUNT(*) FROM task_votes v WHERE v.task_id = t.id AND v.user_id = ?) AS my_vote
-  FROM tasks t JOIN users u ON u.id = t.user_id';
+  FROM tasks t JOIN users u ON u.id = t.user_id LEFT JOIN user_profiles ap ON ap.user_id = t.user_id';
 
 function task_view(array $t): array
 {
@@ -14,6 +14,7 @@ function task_view(array $t): array
         'id' => $t['id'],
         'userId' => $t['user_id'],
         'authorNick' => $t['author_nick'],
+        'authorAvatar' => avatar_url($t['user_id'], $t['author_avatar'] ?? null),
         'game' => $t['game'],
         'title' => $t['title'],
         'description' => $t['description'],

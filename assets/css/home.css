@@ -131,6 +131,76 @@
 .game-pill.gta { color: #4aa8ff; border-color: rgba(74, 168, 255, .45); background: rgba(74, 168, 255, .1); }
 .cc-go { margin-top: auto; font-weight: 700; color: var(--lime); }
 
+/* ---------- Discord ---------- */
+.dc-live { display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; }
+.dc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+.dc-live.is-live { color: var(--muted); }
+.dc-live.is-live .dc-dot { background: #3ba55d; animation: dcPulse 2s infinite; }
+@keyframes dcPulse { from { box-shadow: 0 0 0 0 rgba(59, 165, 93, .7); } to { box-shadow: 0 0 0 10px rgba(59, 165, 93, 0); } }
+
+.dc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.dc-skel { min-height: 360px; }
+.dc-card {
+  --accent: #5865f2; --mx: 50%; --my: 50%;
+  position: relative; overflow: hidden; display: grid; align-content: start; gap: 16px; padding: 30px;
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  transition: transform .35s var(--ease), border-color .3s, box-shadow .3s;
+}
+.dc-card::after { /* подсветка за курсором */
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(380px circle at var(--mx) var(--my), color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%);
+}
+.dc-card:hover { border-color: color-mix(in srgb, var(--accent) 70%, transparent); box-shadow: var(--glass-hi), 0 26px 60px -26px var(--accent); }
+.dc-card:hover::after { opacity: 1; }
+.dc-card > * { position: relative; z-index: 1; }
+.dc-card > .dc-cover { position: absolute; z-index: 0; }
+
+/* фон — размытая иконка сервера + пиксельная сетка */
+.dc-cover {
+  inset: 0 0 auto 0; height: 150px; overflow: hidden; pointer-events: none;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 45%, #0f0f0f), #141414 70%);
+  mask-image: linear-gradient(#000 30%, transparent); -webkit-mask-image: linear-gradient(#000 30%, transparent);
+}
+.dc-cover img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.6); filter: blur(28px) saturate(1.5); opacity: .7; }
+.dc-cover::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(15, 15, 15, .35) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(90deg, rgba(15, 15, 15, .35) 0 1px, transparent 1px 6px);
+}
+
+.dc-head { display: flex; align-items: center; gap: 18px; padding-top: 34px; }
+.dc-icon {
+  flex: none; width: 84px; height: 84px; border-radius: 24px; overflow: hidden; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--accent) 35%, #202020); font: 700 2rem var(--pixel);
+  box-shadow: 0 0 0 3px #161616, 0 0 0 5px color-mix(in srgb, var(--accent) 80%, transparent), 0 12px 36px -8px var(--accent);
+  transition: border-radius .4s var(--ease), transform .4s var(--ease);
+}
+.dc-card:hover .dc-icon { border-radius: 50%; transform: rotate(-4deg); }
+.dc-icon img { width: 100%; height: 100%; object-fit: cover; }
+.dc-title { display: grid; gap: 4px; min-width: 0; }
+.dc-kicker { color: color-mix(in srgb, var(--accent) 75%, #fff); }
+.dc-title h3 { font: 700 clamp(1.6rem, 3.2vw, 2.2rem)/1.05 var(--pixel); text-transform: uppercase; overflow-wrap: anywhere; }
+.dc-tagline { color: var(--text); font-size: 1.02rem; }
+.dc-desc { color: var(--faint); font-size: .9rem; font-style: italic; }
+.dc-perks { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.dc-perks li {
+  padding: 5px 12px; border-radius: var(--pill); font: 600 .82rem var(--pixel);
+  color: color-mix(in srgb, var(--accent) 70%, #fff);
+  background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.dc-stats { display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 14px 0; border-block: 1px dashed var(--line); }
+.dc-stat { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .92rem; }
+.dc-stat i { width: 10px; height: 10px; border-radius: 50%; background: #80848e; }
+.dc-on i { background: #3ba55d; box-shadow: 0 0 10px rgba(59, 165, 93, .8); }
+.dc-stat b { font: 700 1.25rem var(--pixel); color: var(--text); font-variant-numeric: tabular-nums; display: inline-block; }
+.dc-stat b.bump { animation: dcBump .6s var(--ease); }
+@keyframes dcBump { 40% { transform: translateY(-4px) scale(1.15); color: var(--lime); } }
+.dc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.dc-actions .btn-discord svg { width: 20px; height: 20px; }
+.dc-copy { font-family: var(--mono); font-weight: 600; font-size: .8rem; }
+.dc-copy svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
 /* ---------- Контакты ---------- */
 .socials { display: flex; flex-wrap: wrap; gap: 14px; }
 .pill {
@@ -147,7 +217,7 @@
   .float-card { display: none; }
 }
 @media (max-width: 900px) {
-  .stream-wrap, .yt-wrap, .community { grid-template-columns: 1fr; }
+  .stream-wrap, .yt-wrap, .community, .dc-grid { grid-template-columns: 1fr; }
   .chat { height: 460px; }
   .spidey { width: min(100%, 380px); }
 }
@@ -155,6 +225,7 @@
   .stats { grid-template-columns: repeat(2, 1fr); }
   .stat:nth-child(3) { border-left: 0; }
   .stat:nth-child(n+3) { border-top: 1px dashed var(--line); }
-  .community-card { padding: 24px 20px; }
+  .community-card, .dc-card { padding: 24px 20px; }
+  .dc-icon { width: 68px; height: 68px; border-radius: 20px; }
   .spidey-caption { font-size: .85rem; }
 }

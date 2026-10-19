@@ -801,6 +801,94 @@ foreach ($S1urls as $u) { $img = getImage($guest, $u); check('admin-deleted imag
 $r = req($guest, 'GET', 'submissions', ['scope' => 'gallery']);
 check('deleted work gone from gallery', isOk($r) && !in_array($id1, ids(data($r)), true));
 
+/* ============================== Личный кабинет и аватарки ============================== */
+section('profile & avatars');
+const AVATAR_URL_RE = '#^api/index\.php\?r=avatar&id=([0-9a-f-]{36})&v=[0-9a-f]{8}$#';
+function upAvatar(Actor $a, array $files): array { return req($a, 'POST', 'me/avatar', [], form([], $files), ['multipart' => true]); }
+
+expectErr('me/profile as guest → 401', req($guest, 'GET', 'me/profile'), 401, 'auth_required');
+$r = req($A, 'GET', 'me/profile');
+$p = data($r) ?? [];
+check('me/profile → {user, hasPassword, discordLinked, stats}', isOk($r) && !hasKeys($p, ['user', 'hasPassword', 'discordLinked', 'stats'])
+    && $p['hasPassword'] === true && $p['discordLinked'] === false, desc($r));
+$st = $p['stats'] ?? null;
+check('profile stats: ints (+ avgRating number|null)', !hasKeys($st, ['submissions', 'ideal', 'avgRating', 'tasks', 'tasksDone', 'votesReceived'])
+    && is_int($st['submissions']) && is_int($st['ideal']) && is_int($st['tasks']) && is_int($st['tasksDone']) && is_int($st['votesReceived'])
+    && ($st['avgRating'] === null || is_int($st['avgRating']) || is_float($st['avgRating'])), short(json_encode($st)));
+checkUser('profile.user shape', $p['user'] ?? null);
+check('User.avatarUrl is null before upload', is_array($p['user'] ?? null) && array_key_exists('avatarUrl', $p['user']) && $p['user']['avatarUrl'] === null, short(json_encode($p['user'] ?? null)));
+
+$avPng = gd_png(600, 400, "$TMP/avatar.png");
+expectErr('avatar as guest → 401', upAvatar($guest, [cf($avPng, 'image/png')]), 401, 'auth_required');
+expectErr('avatar without CSRF header → 403', req($A, 'POST', 'me/avatar/delete', [], [], ['csrf' => false]), 403, 'forbidden');
+expectErr('avatar without file → 400 files', req($A, 'POST', 'me/avatar', [], ['x' => '1'], ['multipart' => true]), 400, 'validation', ['files']);
+file_put_contents("$TMP/fake-avatar.png", "not an image at all\n");
+expectErr('avatar: text renamed to .png → 400', upAvatar($A, [cf("$TMP/fake-avatar.png", 'image/png')]), 400, 'validation', ['files']);
+expectErr('avatar: two files → 400', upAvatar($A, [cf($avPng, 'image/png'), cf($avPng, 'image/png')]), 400, 'validation', ['files']);
+
+$r = upAvatar($A, [cf($avPng, 'image/png')]);
+$av1 = (string) (data($r)['avatarUrl'] ?? '');
+check('avatar upload → User.avatarUrl', isOk($r) && preg_match(AVATAR_URL_RE, $av1, $m) && $m[1] === $A->user['id'], desc($r));
+$img = getImage($guest, $av1);
+check('guest loads avatar → 200 image/*', $img['status'] === 200 && str_starts_with($img['ctype'], 'image/'), "HTTP {$img['status']} {$img['ctype']}");
+$sz = @getimagesizefromstring($img['body']);
+check('avatar is cropped to 256×256', is_array($sz) && $sz[0] === 256 && $sz[1] === 256, json_encode($sz));
+check('avatar URL is cached as immutable', str_contains(strtolower(implode(',', $img['headers']['cache-control'] ?? [])), 'immutable'), implode(',', $img['headers']['cache-control'] ?? []));
+$r = req($A, 'GET', 'me');
+check('GET me returns the same avatarUrl', isOk($r) && (data($r)['avatarUrl'] ?? null) === $av1, desc($r));
+$r = req($guest, 'GET', 'tasks');
+$allHaveKey = isOk($r) && array_reduce(data($r) ?? [], fn($ok, $t) => $ok && array_key_exists('authorAvatar', $t), true);
+check('tasks carry authorAvatar', $allHaveKey, desc($r));
+$mineA = array_values(array_filter(data($r) ?? [], fn($t) => ($t['userId'] ?? '') === $A->user['id']));
+if ($mineA) check('A\'s task shows A\'s avatar', $mineA[0]['authorAvatar'] === $av1, (string) $mineA[0]['authorAvatar']);
+
+$r = upAvatar($A, [cf(gd_jpeg(300, 500, "$TMP/avatar2.jpg"), 'image/jpeg')]);
+$av2 = (string) (data($r)['avatarUrl'] ?? '');
+check('second avatar (JPEG) → new URL', isOk($r) && preg_match(AVATAR_URL_RE, $av2) && $av2 !== $av1, desc($r));
+$img = getImage($guest, $av1);
+check('old avatar URL is not cached forever any more', $img['status'] === 200 && !str_contains(strtolower(implode(',', $img['headers']['cache-control'] ?? [])), 'immutable'), "HTTP {$img['status']}");
+$r = upAvatar($A, [cf(gd_gif(64, 64, "$TMP/avatar.gif"), 'image/gif')]);
+check('GIF avatar accepted', isOk($r) && preg_match(AVATAR_URL_RE, (string) (data($r)['avatarUrl'] ?? '')), desc($r));
+$av3 = (string) (data($r)['avatarUrl'] ?? '');
+
+$r = req($A, 'POST', 'me/avatar/delete');
+check('avatar delete → avatarUrl null', isOk($r) && array_key_exists('avatarUrl', data($r) ?? []) && data($r)['avatarUrl'] === null, desc($r));
+$img = getImage($guest, $av3);
+check('deleted avatar → 404', $img['status'] === 404, "HTTP {$img['status']}");
+expectErr('avatar of user without one → 404', req($guest, 'GET', 'avatar', ['id' => $B->user['id']]), 404, 'not_found');
+expectErr('avatar with bad id → 404', req($guest, 'GET', 'avatar', ['id' => '../../config']), 404, 'not_found');
+
+expectErr('nick change as guest → 401', req($guest, 'POST', 'me/update', [], ['nick' => "ghost_$RUN"]), 401, 'auth_required');
+expectErr('nick change: invalid → 400 nick', req($A, 'POST', 'me/update', [], ['nick' => 'a b']), 400, 'validation', ['nick']);
+expectErr('nick change: taken (other case) → 409', req($A, 'POST', 'me/update', [], ['nick' => strtoupper("userB_$RUN")]), 409, 'nick_taken', ['nick']);
+$newNick = "renA_$RUN";
+$r = req($A, 'POST', 'me/update', [], ['nick' => $newNick]);
+check('nick change → User.nick', isOk($r) && (data($r)['nick'] ?? null) === $newNick, desc($r));
+$r = req($guest, 'GET', 'tasks');
+$mineA = array_values(array_filter(data($r) ?? [], fn($t) => ($t['userId'] ?? '') === $A->user['id']));
+if ($mineA) check('tasks show the new nick', $mineA[0]['authorNick'] === $newNick, (string) $mineA[0]['authorNick']);
+$r = req($A, 'POST', 'me/update', [], ['nick' => "userA_$RUN"]);
+check('nick changed back', isOk($r) && (data($r)['nick'] ?? null) === "userA_$RUN", desc($r));
+
+expectErr('password: wrong current → 400 currentPassword', req($A, 'POST', 'me/password', [], ['currentPassword' => 'wrong-pass', 'newPassword' => 'newPassA_123']), 400, 'validation', ['currentPassword']);
+expectErr('password: too short → 400 newPassword', req($A, 'POST', 'me/password', [], ['currentPassword' => 'passwordA1', 'newPassword' => 'short']), 400, 'validation', ['newPassword']);
+$A3 = new Actor('A3');
+expectOk('A logs in on a second device', req($A3, 'POST', 'auth/login', [], ['email' => $emailA, 'password' => 'passwordA1']));
+$r = req($A, 'POST', 'me/password', [], ['currentPassword' => 'passwordA1', 'newPassword' => 'newPassA_123']);
+check('password change → ok null', isOk($r) && data($r) === null, desc($r));
+$r = req($A3, 'GET', 'me');
+check('password change logs out the other device', isOk($r) && data($r) === null, desc($r));
+expectErr('other device can no longer post', req($A3, 'POST', 'me/update', [], ['nick' => "zzz_$RUN"]), 401, 'auth_required');
+$r = req($A, 'GET', 'me');
+check('still logged in after password change', isOk($r) && (data($r)['id'] ?? null) === $A->user['id'], desc($r));
+$A2 = new Actor('A2');
+expectErr('old password no longer works', req($A2, 'POST', 'auth/login', [], ['email' => $emailA, 'password' => 'passwordA1']), 401, 'invalid_credentials');
+expectOk('new password works', req($A2, 'POST', 'auth/login', [], ['email' => $emailA, 'password' => 'newPassA_123']));
+expectOk('password changed back', req($A, 'POST', 'me/password', [], ['currentPassword' => 'newPassA_123', 'newPassword' => 'passwordA1']));
+$r = req($A, 'POST', 'me/discord/unlink');
+check('discord unlink when not linked → profile, discordLinked false', isOk($r) && (data($r)['discordLinked'] ?? null) === false, desc($r));
+reset_rl();
+
 /* ============================== Discord ============================== */
 section('discord');
 $dl = $BASE . '/api/discord-login.php';

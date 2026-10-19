@@ -7,7 +7,8 @@
 
 | Файл | id для mountLayout | Что делает | JS / CSS |
 |---|---|---|---|
-| `index.html` | `home` | Главная: герой с Человеком-пауком, проекты, Twitch, YouTube | `pages/home.js`, `home.css` |
+| `index.html` | `home` | Главная: герой с Человеком-пауком, проекты, Twitch, YouTube, Discord-серверы | `pages/home.js`, `home.css` |
+| `profile.html` | `profile` | Личный кабинет: аватарка, ник, пароль, Discord, мои работы и задания | `pages/profile.js`, `profile.css` |
 | `repos.html` | `repos` | Все репозитории GitHub (открытые + закрытые) | `pages/repos.js`, `repos.css` |
 | `repo.html?name=X&path=Y` | `repos` | Просмотр кода открытого репозитория | `pages/repo.js`, `repo.css` |
 | `review.html` | `review` | Работы на оценку: отправка, оценка, доработка, галерея | `pages/review.js`, `review.css` |
@@ -33,6 +34,7 @@ assets/js/data/errors.js     ApiError { code, message, fields }
 assets/js/data/github.js     loadRepos, getRepo, getTree, getFileText, getReadme, rawUrl, LANG_COLORS
 assets/js/pages/<page>.js    логика страницы
 data/repos.json              снимок репозиториев (делает tools/sync-github.ps1)
+data/discord.json, discord/  снимок Discord-серверов и их иконки (делает tools/sync-discord.ps1 при деплое)
 api/                         PHP-сервер: index.php (маршруты), discord-*.php, lib/, schema.sql — протокол в API.md
 tests/api-test.php           автотесты API на настоящей MySQL (запускаются в GitHub Actions перед деплоем)
 ```

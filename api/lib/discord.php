@@ -113,6 +113,10 @@ function discord_login(): void
     $_SESSION['discord_state'] = $state;
     $_SESSION['discord_state_at'] = time();
     $_SESSION['discord_return'] = $return;
+    // ?link=1 из личного кабинета: привязать Discord к уже вошедшему пользователю
+    $me = ($_GET['link'] ?? '') === '1' ? current_user() : null;
+    if ($me) $_SESSION['discord_link'] = $me['id'];
+    else unset($_SESSION['discord_link']);
     session_release();
     $q = http_build_query([
         'response_type' => 'code',
@@ -139,9 +143,12 @@ function discord_callback(): void
 
         $expected = $hasSession ? ($_SESSION['discord_state'] ?? null) : null;
         $at = $hasSession ? (int) ($_SESSION['discord_state_at'] ?? 0) : 0;
+        $linkUid = $hasSession ? ($_SESSION['discord_link'] ?? null) : null;
         if ($hasSession) {
-            unset($_SESSION['discord_state'], $_SESSION['discord_state_at'], $_SESSION['discord_return']);
+            unset($_SESSION['discord_state'], $_SESSION['discord_state_at'], $_SESSION['discord_return'], $_SESSION['discord_link']);
         }
+        // привязка — только в той же сессии, где пользователь вошёл
+        if (!is_string($linkUid) || ($_SESSION['uid'] ?? null) !== $linkUid) $linkUid = null;
         $state = $_GET['state'] ?? '';
         if (!is_string($expected) || !is_string($state) || $state === '' || !hash_equals($expected, $state) || time() - $at > DISCORD_STATE_TTL) {
             $fail('state');
@@ -196,8 +203,28 @@ function discord_callback(): void
             return;
         }
 
-        // 3) найти / привязать / создать пользователя и войти
+        // 3a) привязка к аккаунту из личного кабинета
+        if ($linkUid !== null) {
+            $reason = discord_link_user($linkUid, (string) $profile['id']);
+            if ($reason !== null) {
+                $fail($reason);
+                return;
+            }
+            discord_sync_avatar($linkUid, $profile);
+            session_release();
+            redirect(return_url($return, ['auth' => 'discord_linked']));
+            return;
+        }
+
+        // 3b) найти / привязать / создать пользователя и войти.
+        // Discord, который владелец отвязал в кабинете, не входит (иначе email снова привязал бы его к аккаунту).
+        $did = (string) $profile['id'];
+        if (!q_one('SELECT id FROM users WHERE discord_id = ?', [$did]) && q_one('SELECT user_id FROM user_profiles WHERE discord_unlinked = ?', [$did])) {
+            $fail('unlinked');
+            return;
+        }
         $userId = discord_upsert_user($profile);
+        discord_sync_avatar($userId, $profile);
         session_login($userId);
         session_release();
         redirect(return_url($return, ['auth' => 'discord']));
@@ -205,6 +232,25 @@ function discord_callback(): void
         error_log('[ndze] discord callback: ' . get_class($e) . ': ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
         redirect(return_url($return, ['auth' => 'discord_error', 'reason' => 'server']));
     }
+}
+
+/** Привязать Discord к пользователю. null — успех, иначе причина для ?reason=. */
+function discord_link_user(string $userId, string $discordId): ?string
+{
+    $owner = q_one('SELECT id FROM users WHERE discord_id = ?', [$discordId]);
+    if ($owner && $owner['id'] !== $userId) return 'discord_taken';
+    $me = q_one('SELECT discord_id FROM users WHERE id = ?', [$userId]);
+    if (!$me) return 'state';
+    if ($me['discord_id'] !== null && $me['discord_id'] !== $discordId) return 'already_linked';
+    try {
+        q('UPDATE users SET discord_id = ?, updated_at = ? WHERE id = ?', [$discordId, now_db(), $userId]);
+    } catch (PDOException $e) {
+        if (!is_duplicate_key($e)) throw $e;
+        return 'discord_taken';
+    }
+    // привязал снова сам — снимаем отметку «отвязан» (у себя и у прежнего владельца этого Discord)
+    q('UPDATE user_profiles SET discord_unlinked = NULL WHERE discord_unlinked = ? OR user_id = ?', [$discordId, $userId]);
+    return null;
 }
 
 /** Пользователь по discord_id → по подтверждённому email (привязка) → новый. Возвращает id. */

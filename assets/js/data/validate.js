@@ -22,6 +22,24 @@ export function checkSignIn({ email, password }) {
   return e;
 }
 
+export function checkNick(nick) {
+  return LIMITS.nick.re.test(String(nick ?? "").trim()) ? {} : { nick: "3–20 символов: буквы, цифры и _" };
+}
+
+export function checkPasswordChange({ currentPassword, newPassword, hasPassword }) {
+  const e = {};
+  if (hasPassword && !currentPassword) e.currentPassword = "Введи текущий пароль";
+  if (String(newPassword ?? "").length < LIMITS.password.min) e.newPassword = `Минимум ${LIMITS.password.min} символов`;
+  return e;
+}
+
+/** Одна картинка для аватарки. */
+export function checkAvatar(file) {
+  if (!file) return { files: "Выбери картинку" };
+  const err = checkFiles([file]);
+  return err ? { files: err } : {};
+}
+
 export function checkFiles(files, { required = true } = {}) {
   const list = [...(files || [])];
   if (required && !list.length) return "Добавь хотя бы одно изображение";

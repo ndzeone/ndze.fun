@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Личный кабинет — ndze</title>
+  <meta name="description" content="Личный кабинет на сайте ndze: аватарка, ник, твои работы на оценку и задания на стрим.">
+  <meta name="theme-color" content="#0f0f0f">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/profile.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main">
+    <div id="profileRoot" aria-live="polite">
+      <div class="pf-loading"><div class="skeleton pf-skel-hero"></div><div class="skeleton"></div></div>
+    </div>
+  </main>
+
+  <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+  <script type="module" src="assets/js/pages/profile.js"></script>
+</body>
+</html>

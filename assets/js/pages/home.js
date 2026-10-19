@@ -1,6 +1,6 @@
 import { SITE } from "../config.js";
-import { mountLayout } from "../core/layout.js";
-import { $, $$, esc, lerp, motion, finePointer } from "../core/util.js";
+import { mountLayout, DISCORD_SVG } from "../core/layout.js";
+import { $, $$, esc, lerp, motion, finePointer, plural, toast, initial } from "../core/util.js";
 import { mouse, onFrame, initReveal, initMagnetic, initTilt } from "../core/fx.js";
 import { loadRepos } from "../data/github.js";
 import { repoCardHTML } from "../core/repo-card.js";
@@ -131,8 +131,103 @@ function renderYouTube() {
   }
 }
 
+/* ---------- Discord-серверы ---------- */
+// data/discord.json собирает tools/sync-discord.ps1 при деплое (Discord и его CDN в РФ доступны не всем);
+// онлайн дополнительно спрашиваем у Discord из браузера — получится, если он открывается.
+const DATA_ROOT = new URL("../../../", import.meta.url);
+const people = (n) => plural(n, ["участник", "участника", "участников"]);
+
+function discordCardHTML(cfg, info) {
+  const name = info?.name || cfg.kind;
+  const icon = info?.icon ? new URL(info.icon, DATA_ROOT).href : "";
+  const link = `https://discord.gg/${cfg.invite}`;
+  // описание из Discord показываем цитатой, если это не просто «Название | жанр»
+  const desc = info?.description && !info.description.toLowerCase().includes(name.toLowerCase()) ? info.description : "";
+  return `<article class="dc-card glass" style="--accent:${esc(cfg.accent || "#5865f2")}" data-invite="${esc(cfg.invite)}">
+    ${icon ? `<div class="dc-cover" aria-hidden="true"><img src="${esc(icon)}" alt="" loading="lazy" decoding="async"></div>` : '<div class="dc-cover" aria-hidden="true"></div>'}
+    <div class="dc-head">
+      <span class="dc-icon">${icon ? `<img src="${esc(icon)}" alt="" width="84" height="84" loading="lazy" decoding="async">` : esc(initial(name))}</span>
+      <div class="dc-title">
+        <span class="cc-kicker dc-kicker">${esc(cfg.kind)}</span>
+        <h3>${esc(name)}</h3>
+      </div>
+    </div>
+    <p class="dc-tagline">${esc(cfg.tagline)}</p>
+    ${desc ? `<p class="dc-desc">«${esc(desc)}»</p>` : ""}
+    ${cfg.perks?.length ? `<ul class="dc-perks">${cfg.perks.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>` : ""}
+    <div class="dc-stats"${info ? "" : " hidden"}>
+      <span class="dc-stat dc-on"><i aria-hidden="true"></i><b data-online>${info?.online ?? 0}</b> в сети</span>
+      <span class="dc-stat"><i aria-hidden="true"></i><b data-members>${info?.members ?? 0}</b> <span data-members-label>${people(info?.members ?? 0)}</span></span>
+    </div>
+    <div class="dc-actions">
+      <a class="btn btn-discord magnetic" href="${esc(link)}" target="_blank" rel="noopener">${DISCORD_SVG}<span>Присоединиться</span></a>
+      <button class="btn btn-ghost btn-sm dc-copy" type="button" data-copy="${esc(link)}" aria-label="Скопировать ссылку-приглашение ${esc(link)}">
+        <span>discord.gg/${esc(cfg.invite)}</span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>
+      </button>
+    </div>
+  </article>`;
+}
+
+function setCount(card, attr, n) {
+  const el = $(`[${attr}]`, card);
+  if (!el || el.textContent === String(n)) return;
+  el.textContent = n;
+  el.classList.remove("bump");
+  void el.offsetWidth;
+  el.classList.add("bump");
+}
+
+async function liveDiscord(card, code) {
+  try {
+    const res = await fetch(`https://discord.com/api/v10/invites/${encodeURIComponent(code)}?with_counts=true`, {
+      signal: AbortSignal.timeout?.(5000), credentials: "omit", referrerPolicy: "no-referrer",
+    });
+    if (!res.ok) return false;
+    const j = await res.json();
+    if (!Number.isFinite(j.approximate_member_count)) return false;
+    $(".dc-stats", card).hidden = false;
+    setCount(card, "data-online", j.approximate_presence_count);
+    setCount(card, "data-members", j.approximate_member_count);
+    $("[data-members-label]", card).textContent = people(j.approximate_member_count);
+    return true;
+  } catch {
+    return false; // Discord недоступен — остаются цифры из data/discord.json
+  }
+}
+
+async function renderDiscord() {
+  const grid = $("#dcGrid");
+  const list = SITE.discord || [];
+  if (!list.length) return $("#discord").remove();
+  let data = {};
+  try {
+    const res = await fetch(new URL("data/discord.json", DATA_ROOT), { cache: "no-cache" });
+    if (res.ok) data = (await res.json()).servers || {};
+  } catch { /* нет снимка — карточки без цифр */ }
+  grid.innerHTML = list.map((cfg) => discordCardHTML(cfg, data[cfg.invite])).join("");
+  initTilt(grid, ".dc-card", { maxX: 4, maxY: 5 });
+  // живые цифры догружаются в фоне, страницу не ждём
+  Promise.all(list.map((cfg) => liveDiscord($(`[data-invite="${cfg.invite}"]`, grid), cfg.invite))).then((live) => {
+    if (!live.some(Boolean)) return;
+    $("#dcLive").classList.add("is-live");
+    $("#dcLiveText").textContent = "онлайн вживую";
+  });
+}
+
+$("#dcGrid").addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-copy]");
+  if (!btn) return;
+  try {
+    await navigator.clipboard.writeText(btn.dataset.copy);
+    toast("Ссылка-приглашение скопирована");
+  } catch {
+    toast(btn.dataset.copy);
+  }
+});
+
 renderTwitch();
 renderYouTube();
+await renderDiscord();
 initTilt($("#community"), ".community-card", { maxX: 5, maxY: 6 });
 initMagnetic();
 await renderProjects();

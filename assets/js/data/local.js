@@ -7,6 +7,7 @@ import { LIMITS } from "./constants.js";
 import {
   assertValid, checkSignUp, checkSignIn, checkSubmission, checkVersion,
   checkComment, checkReview, checkTask, checkTaskUpdate,
+  checkNick, checkPasswordChange, checkAvatar,
 } from "./validate.js";
 
 const DB_NAME = "ndze-site";
@@ -78,8 +79,32 @@ async function fileToDataUrl(file) {
   return canvas.toDataURL(file.type === "image/png" ? "image/png" : "image/jpeg", 0.86);
 }
 
-const publicUser = (u) => (u ? { id: u.id, nick: u.nick, email: u.email, role: u.role, createdAt: u.createdAt } : null);
+/** Аватарка как на сервере: квадрат 256×256, обрезка по центру → data: URL. */
+async function avatarDataUrl(file) {
+  const bmp = await createImageBitmap(file);
+  const side = Math.min(bmp.width, bmp.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 256;
+  canvas.getContext("2d").drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, 256, 256);
+  bmp.close?.();
+  return canvas.toDataURL("image/webp", 0.88);
+}
+
+const publicUser = (u) => (u ? { id: u.id, nick: u.nick, email: u.email, role: u.role, avatarUrl: u.avatarUrl ?? null, createdAt: u.createdAt } : null);
 const byUpdatedDesc = (a, b) => b.updatedAt.localeCompare(a.updatedAt);
+
+/** Актуальные ник и аватарка автора (в демо они хранятся снимком на момент создания). */
+async function withAuthors(items) {
+  const users = new Map((await read("users", [])).map((u) => [u.id, u]));
+  const fix = (x) => {
+    const u = users.get(x.userId);
+    if (u) { x.authorNick = u.nick; x.authorAvatar = u.avatarUrl ?? null; }
+    else x.authorAvatar ??= null;
+    x.comments?.forEach(fix);
+    return x;
+  };
+  return items.map(fix);
+}
 
 export function createLocalBackend() {
   const listeners = new Set();
@@ -111,10 +136,10 @@ export function createLocalBackend() {
   }
 
   async function taskView(tasks, votes, me) {
-    return tasks.map((t) => {
+    return withAuthors(tasks.map((t) => {
       const tv = votes.filter((v) => v.taskId === t.id);
       return { ...copy(t), votes: tv.length, myVote: !!me && tv.some((v) => v.userId === me.id) };
-    });
+    }));
   }
 
   return {
@@ -170,6 +195,82 @@ export function createLocalBackend() {
       return () => listeners.delete(cb);
     },
 
+    /* ---------- Личный кабинет ---------- */
+    async getProfile() {
+      const me = await requireUser();
+      const [subs, tasks, votes] = await Promise.all([getSubs(), read("tasks", []), read("votes", [])]);
+      const mine = subs.filter((s) => s.userId === me.id);
+      const rated = mine.filter((s) => s.rating !== null);
+      const myTasks = tasks.filter((t) => t.userId === me.id);
+      const myTaskIds = new Set(myTasks.map((t) => t.id));
+      return {
+        user: publicUser(me),
+        hasPassword: true,
+        discordLinked: false,
+        stats: {
+          submissions: mine.length,
+          ideal: mine.filter((s) => s.status === "ideal").length,
+          avgRating: rated.length ? Math.round((rated.reduce((a, s) => a + s.rating, 0) / rated.length) * 10) / 10 : null,
+          tasks: myTasks.length,
+          tasksDone: myTasks.filter((t) => t.status === "done").length,
+          votesReceived: votes.filter((v) => myTaskIds.has(v.taskId)).length,
+        },
+      };
+    },
+
+    async updateProfile({ nick }) {
+      const me = await requireUser();
+      assertValid(checkNick(nick));
+      nick = clean(nick);
+      const users = await read("users", []);
+      if (users.some((u) => u.id !== me.id && u.nick.toLowerCase() === nick.toLowerCase())) throw new ApiError("nick_taken", undefined, { nick: "Этот ник уже занят" });
+      const u = users.find((x) => x.id === me.id);
+      u.nick = nick;
+      await write("users", users);
+      emit(publicUser(u));
+      return publicUser(u);
+    },
+
+    async changePassword({ currentPassword = "", newPassword }) {
+      const me = await requireUser();
+      assertValid(checkPasswordChange({ currentPassword, newPassword, hasPassword: true }));
+      if (me.hash !== (await hashPassword(currentPassword, me.salt))) throw new ApiError("validation", "Неверный текущий пароль", { currentPassword: "Неверный текущий пароль" });
+      const users = await read("users", []);
+      const u = users.find((x) => x.id === me.id);
+      u.salt = uid();
+      u.hash = await hashPassword(newPassword, u.salt);
+      await write("users", users);
+    },
+
+    async uploadAvatar(file) {
+      const me = await requireUser();
+      assertValid(checkAvatar(file));
+      const users = await read("users", []);
+      const u = users.find((x) => x.id === me.id);
+      u.avatarUrl = await avatarDataUrl(file);
+      await write("users", users);
+      emit(publicUser(u));
+      return publicUser(u);
+    },
+
+    async removeAvatar() {
+      const me = await requireUser();
+      const users = await read("users", []);
+      const u = users.find((x) => x.id === me.id);
+      u.avatarUrl = null;
+      await write("users", users);
+      emit(publicUser(u));
+      return publicUser(u);
+    },
+
+    async linkDiscord() {
+      throw new ApiError("validation", "Привязка Discord работает на сайте ndze.fun (в локальном демо-режиме её нет)");
+    },
+
+    async unlinkDiscord() {
+      return this.getProfile();
+    },
+
     /* ---------- Работы на оценку ---------- */
     async listSubmissions({ scope = "mine" } = {}) {
       const subs = await getSubs();
@@ -177,14 +278,14 @@ export function createLocalBackend() {
       if (scope === "gallery") list = subs.filter((s) => s.status === "ideal");
       else if (scope === "all") { await requireAdmin(); list = subs; }
       else { const me = await requireUser(); list = subs.filter((s) => s.userId === me.id); }
-      return copy(list).sort(byUpdatedDesc);
+      return (await withAuthors(copy(list))).sort(byUpdatedDesc);
     },
 
     async getSubmission(id) {
       const me = await currentUser();
       const s = await findSub(await getSubs(), id);
       if (!canSee(me, s)) throw new ApiError(me ? "forbidden" : "auth_required");
-      return copy(s);
+      return (await withAuthors([copy(s)]))[0];
     },
 
     async createSubmission({ title, description = "", category, files, note = "" }) {
@@ -193,7 +294,7 @@ export function createLocalBackend() {
       const imageUrls = await Promise.all([...files].map(fileToDataUrl));
       const t = now();
       const sub = {
-        id: uid(), userId: me.id, authorNick: me.nick,
+        id: uid(), userId: me.id, authorNick: me.nick, authorAvatar: me.avatarUrl ?? null,
         title: clean(title), description: clean(description), category,
         status: "pending", rating: null, createdAt: t, updatedAt: t,
         versions: [{ id: uid(), n: 1, imageUrls, note: clean(note), createdAt: t }],
@@ -227,7 +328,7 @@ export function createLocalBackend() {
       const s = await findSub(subs, id);
       if (me.role !== "admin" && s.userId !== me.id) throw new ApiError("forbidden");
       const t = now();
-      const comment = { id: uid(), userId: me.id, authorNick: me.nick, isAdmin: me.role === "admin", text: clean(text), createdAt: t };
+      const comment = { id: uid(), userId: me.id, authorNick: me.nick, authorAvatar: me.avatarUrl ?? null, isAdmin: me.role === "admin", text: clean(text), createdAt: t };
       s.comments.push(comment);
       s.updatedAt = t;
       await write("submissions", subs);
@@ -276,7 +377,7 @@ export function createLocalBackend() {
       const tasks = await read("tasks", []);
       tasks.push(task);
       await write("tasks", tasks);
-      return { ...copy(task), votes: 0, myVote: false };
+      return { ...copy(task), authorAvatar: me.avatarUrl ?? null, votes: 0, myVote: false };
     },
 
     async toggleVote(id) {

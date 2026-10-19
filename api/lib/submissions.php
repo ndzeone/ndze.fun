@@ -8,11 +8,15 @@ function can_see_submission(?array $me, string $ownerId, string $status): bool
     return $status === 'ideal' || ($me && ($me['role'] === 'admin' || $me['id'] === $ownerId));
 }
 
-/** Строка submissions (+ author_nick) по id или 404 «Работа не найдена». */
+const SUB_SELECT = 'SELECT s.*, u.nick AS author_nick, ap.avatar_file AS author_avatar
+  FROM submissions s JOIN users u ON u.id = s.user_id LEFT JOIN user_profiles ap ON ap.user_id = s.user_id';
+
+/** Строка submissions (+ author_nick, author_avatar) по id или 404 «Работа не найдена». */
 function find_submission(?string $id, bool $forUpdate = false): array
 {
+    // FOR UPDATE блокирует только строку работы: LEFT JOIN профиля в блокировку не берём
     $row = $id ? q_one(
-        'SELECT s.*, u.nick AS author_nick FROM submissions s JOIN users u ON u.id = s.user_id WHERE s.id = ?' . ($forUpdate ? ' FOR UPDATE' : ''),
+        $forUpdate ? 'SELECT s.* FROM submissions s WHERE s.id = ? FOR UPDATE' : SUB_SELECT . ' WHERE s.id = ?',
         [$id]
     ) : null;
     if (!$row) throw new ApiError('not_found', 'Работа не найдена');
@@ -42,8 +46,8 @@ function submissions_view(array $rows): array
     }
     $comments = [];
     foreach (q_all(
-        "SELECT c.id, c.submission_id, c.user_id, c.text, c.created_at, u.nick, u.email, u.discord_id
-         FROM submission_comments c JOIN users u ON u.id = c.user_id
+        "SELECT c.id, c.submission_id, c.user_id, c.text, c.created_at, u.nick, u.email, u.discord_id, p.avatar_file
+         FROM submission_comments c JOIN users u ON u.id = c.user_id LEFT JOIN user_profiles p ON p.user_id = c.user_id
          WHERE c.submission_id IN ($in) ORDER BY c.created_at ASC, c.id ASC",
         $ids
     ) as $c) {
@@ -55,6 +59,7 @@ function submissions_view(array $rows): array
             'id' => $s['id'],
             'userId' => $s['user_id'],
             'authorNick' => $s['author_nick'],
+            'authorAvatar' => avatar_url($s['user_id'], $s['author_avatar'] ?? null),
             'title' => $s['title'],
             'description' => $s['description'],
             'category' => $s['category'],
@@ -75,6 +80,7 @@ function comment_view(array $c): array
         'id' => $c['id'],
         'userId' => $c['user_id'],
         'authorNick' => $c['nick'],
+        'authorAvatar' => avatar_url($c['user_id'], $c['avatar_file'] ?? null),
         'isAdmin' => is_admin_row($c['email'], $c['discord_id']),
         'text' => $c['text'],
         'createdAt' => iso($c['created_at']),
@@ -91,7 +97,7 @@ function submission_get_view(string $id): array
 function route_submissions_list(): array
 {
     $scope = query_str('scope') ?: 'mine';
-    $sql = 'SELECT s.*, u.nick AS author_nick FROM submissions s JOIN users u ON u.id = s.user_id';
+    $sql = SUB_SELECT;
     if ($scope === 'gallery') {
         session_release();
         $rows = q_all("$sql WHERE s.status = 'ideal' ORDER BY s.updated_at DESC, s.id DESC");
@@ -225,7 +231,7 @@ function route_submission_comment(): array
     }
     return comment_view([
         'id' => $cid, 'user_id' => $me['id'], 'nick' => $me['nick'], 'email' => $me['email'],
-        'discord_id' => $me['discord_id'], 'text' => $text, 'created_at' => $t,
+        'discord_id' => $me['discord_id'], 'avatar_file' => $me['avatar_file'] ?? null, 'text' => $text, 'created_at' => $t,
     ]);
 }
 

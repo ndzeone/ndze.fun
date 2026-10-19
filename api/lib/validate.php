@@ -65,6 +65,25 @@ function check_sign_up(string $nick, string $email, string $password): array
     return $e;
 }
 
+function check_nick(string $nick): array
+{
+    return preg_match(LIM_NICK_RE, $nick) ? [] : ['nick' => '3–20 символов: буквы, цифры и _'];
+}
+
+/** Длина пароля как String(p).length в JS (UTF-16). */
+function js_length(string $s): int
+{
+    return intdiv(strlen(mb_convert_encoding($s, 'UTF-16LE', 'UTF-8')), 2);
+}
+
+function check_password_change(string $current, string $next, bool $hasPassword): array
+{
+    $e = [];
+    if ($hasPassword && $current === '') $e['currentPassword'] = 'Введи текущий пароль';
+    if (js_length($next) < LIM_PASSWORD_MIN) $e['newPassword'] = 'Минимум ' . LIM_PASSWORD_MIN . ' символов';
+    return $e;
+}
+
 function check_sign_in(string $email, string $password): array
 {
     $e = [];

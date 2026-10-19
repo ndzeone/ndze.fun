@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 define('NDZE', true);
 define('NDZE_API_DIR', dirname(__DIR__));          // …/public_html/api
-define('NDZE_SCHEMA_VERSION', 1);
+define('NDZE_SCHEMA_VERSION', 2);
 
 ini_set('display_errors', '0');
 ini_set('display_startup_errors', '0');
@@ -51,6 +51,7 @@ require __DIR__ . '/submissions.php';
 require __DIR__ . '/tasks.php';
 require __DIR__ . '/stats.php';
 require __DIR__ . '/discord.php';
+require __DIR__ . '/profile.php';
 
 /** config.php как массив или null, если файла нет / он битый. */
 function config(): ?array

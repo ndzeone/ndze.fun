@@ -14,6 +14,7 @@ api/lib/*.php              код (доступ из браузера запре
 api/config.php             секреты — НЕ в git; создаётся при деплое из GitHub Secrets (пример: api/config.example.php)
 api/schema.sql             таблицы MySQL; применяется автоматически (таблица schema_version)
 ~/ndze/storage/uploads/    картинки работ — ВНЕ public_html, отдаются только через api (проверка прав)
+~/ndze/storage/avatars/    аватарки 256×256 — ВНЕ public_html, отдаются через api (публично)
 ```
 
 ## Формат
@@ -32,11 +33,15 @@ api/schema.sql             таблицы MySQL; применяется авто
 ## Сессия и безопасность
 
 - PHP-сессия, cookie `ndze_sid`: HttpOnly, SameSite=Lax, Secure при HTTPS. `session_regenerate_id` при входе.
+  Смена пароля и отвязка Discord увеличивают `user_profiles.auth_epoch` — все остальные сессии пользователя
+  перестают действовать (текущая перевыпускается). Отвязанный Discord (`discord_unlinked`) больше не входит
+  в аккаунт, вход им возвращает `reason=unlinked`, пока его не привяжут снова из кабинета.
 - Пароли — `password_hash(PASSWORD_DEFAULT)`. Email хранится в нижнем регистре.
 - Админ: email в `ADMIN_EMAILS` (config.php) **или** Discord id в `ADMIN_DISCORD_IDS`.
   Для Discord email учитывается только если Discord пометил его `verified`.
 - Лимиты (таблица `rate_limits`): вход — 10 попыток / 15 мин на IP; регистрация — 5 / час на IP;
-  новые работы — 20 / сутки на пользователя; задания — 20 / сутки; комментарии — 60 / час.
+  новые работы — 20 / сутки на пользователя; задания — 20 / сутки; комментарии — 60 / час;
+  аватарки — 20 / сутки; смена ника — 5 / сутки; неверный текущий пароль при смене — 10 / 15 мин.
 - Все SQL — только подготовленные запросы PDO. Ошибки PHP не показываются клиенту (только `unknown`), пишутся в лог.
 - Картинки: проверка через `getimagesize` + finfo, разрешены JPEG/PNG/WEBP/GIF до 10 МБ, до 5 файлов;
   JPEG/PNG/WEBP пересохраняются через GD (уменьшение до 1600px по длинной стороне, метаданные удаляются);
@@ -63,12 +68,21 @@ api/schema.sql             таблицы MySQL; применяется авто
 | POST | `task/vote` | `{id}` | `{votes, myVote}` | вход |
 | POST | `task/update` | `{id, status?, adminNote?}` | `Task` | админ |
 | POST | `task/delete` | `{id}` | `null` | автор (пока status new), админ |
+| GET | `me/profile` | — | `Profile` = `{ user, hasPassword, discordLinked, stats: { submissions, ideal, avgRating, tasks, tasksDone, votesReceived } }` | вход |
+| POST | `me/update` | `{nick}` | `User` | вход |
+| POST | `me/password` | `{currentPassword, newPassword}` (без пароля — только `newPassword`, нужен email) | `null` (+новый id сессии) | вход |
+| POST | `me/avatar` | multipart: `files[]` — одна картинка | `User` (квадрат 256×256, обрезка по центру, WEBP/PNG) | вход |
+| POST | `me/avatar/delete` | — | `User` (avatarUrl null; из Discord больше не подтягивается) | вход |
+| POST | `me/discord/unlink` | — | `Profile` (400, если нет email+пароля) | вход |
+| GET | `avatar` | `id` (id пользователя), `v` | картинка (не JSON); 404 если аватарки нет | все |
 | GET | `stats` | — | `Stats` | админ |
 | GET | `health` | — | `{ php, db, schema, storage, gd, curl }` (true/false + версия php) | все |
 | GET | `health/discord` | — | `{ reachable, ms, error? }` — доступен ли discord.com с сервера | админ |
 
 `Version.imageUrls` — относительные ссылки вида `api/index.php?r=image&id=<uuid>`.
 `Comment.isAdmin` — роль автора комментария на момент чтения.
+`User.avatarUrl`, `Submission.authorAvatar`, `Comment.authorAvatar`, `Task.authorAvatar` — `api/index.php?r=avatar&id=<uuid>&v=<8 hex>`
+или `null`. `v` меняется с каждой новой картинкой, поэтому ответ кэшируется как `immutable`.
 
 ## Вход через Discord
 
@@ -81,6 +95,11 @@ api/schema.sql             таблицы MySQL; применяется авто
    очищенный до `[\p{L}\d_]`, 3–20 символов, при совпадении — цифры в конце. Вход в сессию.
 4. 302 обратно на `return` с `?auth=discord` (успех) или `?auth=discord_error&reason=<code>`.
    Фронтенд показывает тост и убирает параметры из адреса.
+5. Аватарка Discord скачивается в хранилище при входе, если своей загруженной нет и пользователь её не удалял.
+
+Привязка из личного кабинета: `discord-login.php?link=1&return=…` (нужен вход). Callback привязывает Discord
+к пользователю той же сессии и возвращает `?auth=discord_linked`; ошибки — `reason=discord_taken`
+(Discord уже у другого аккаунта) или `already_linked` (к аккаунту привязан другой Discord).
 
 `redirect_uri` = `DISCORD_REDIRECT_URI` из config.php (по умолчанию `https://ndze.fun/api/discord-callback.php`).
 

@@ -64,3 +64,22 @@ export function toast(message, type = "ok", ms = 3800) {
 
 /** Первая буква ника для аватарки. */
 export const initial = (nick) => ([...String(nick || "?")][0] || "?").toUpperCase();
+
+/**
+ * Аватарка: картинка поверх первой буквы ника. Не загрузилась — остаётся буква.
+ * size: "" | "sm" | "lg" | "xl"; extra — дополнительные классы.
+ */
+export function avatarHTML(nick, url, { size = "", extra = "" } = {}) {
+  const cls = ["avatar", size, extra, url ? "has-img" : ""].filter(Boolean).join(" ");
+  const img = url ? `<img src="${esc(url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : "";
+  return `<span class="${cls}" aria-hidden="true">${esc(initial(nick))}${img}</span>`;
+}
+
+// Битая картинка аватарки → показываем букву (событие error не всплывает — ловим на погружении)
+document.addEventListener("error", (e) => {
+  const img = e.target;
+  if (img instanceof HTMLImageElement && img.parentElement?.classList.contains("avatar")) {
+    img.parentElement.classList.remove("has-img");
+    img.remove();
+  }
+}, true);

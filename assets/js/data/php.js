@@ -6,6 +6,7 @@ import { ApiError } from "./errors.js";
 import {
   assertValid, checkSignUp, checkSignIn, checkSubmission, checkVersion,
   checkComment, checkReview, checkTask, checkTaskUpdate,
+  checkNick, checkPasswordChange, checkAvatar,
 } from "./validate.js";
 
 const ROOT = new URL("../../../", import.meta.url); // корень сайта (файл лежит в assets/js/data/)
@@ -59,7 +60,8 @@ export function createPhpBackend() {
   let current; // undefined — ещё не спрашивали сервер
 
   const setUser = (u) => {
-    const changed = (u?.id ?? null) !== (current?.id ?? null) || u?.role !== current?.role;
+    const changed = (u?.id ?? null) !== (current?.id ?? null) || u?.role !== current?.role
+      || u?.nick !== current?.nick || u?.avatarUrl !== current?.avatarUrl;
     current = u ?? null;
     if (changed) listeners.forEach((cb) => { try { cb(current); } catch (err) { console.error(err); } });
     return current;
@@ -100,6 +102,42 @@ export function createPhpBackend() {
     onAuthChange(cb) {
       listeners.add(cb);
       return () => listeners.delete(cb);
+    },
+
+    /* ---------- Личный кабинет ---------- */
+    async getProfile() {
+      const p = await call("me/profile");
+      setUser(p.user);
+      return p;
+    },
+
+    async updateProfile({ nick }) {
+      assertValid(checkNick(nick));
+      return setUser(await post("me/update", { nick: nick.trim() }));
+    },
+
+    async changePassword({ currentPassword = "", newPassword, hasPassword = true }) {
+      assertValid(checkPasswordChange({ currentPassword, newPassword, hasPassword }));
+      await post("me/password", { currentPassword, newPassword });
+    },
+
+    async uploadAvatar(file) {
+      assertValid(checkAvatar(file));
+      return setUser(await call("me/avatar", { method: "POST", form: filesForm({}, [file]) }));
+    },
+
+    async removeAvatar() {
+      return setUser(await post("me/avatar/delete"));
+    },
+
+    async linkDiscord() {
+      const back = location.pathname + location.search;
+      location.href = `${new URL("api/discord-login.php", ROOT)}?link=1&return=${encodeURIComponent(back)}`;
+      return new Promise(() => {});
+    },
+
+    async unlinkDiscord() {
+      return post("me/discord/unlink");
     },
 
     /* ---------- Работы на оценку ---------- */

@@ -15,7 +15,7 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: "17 4 * * *" # раз в сутки — обновить список репозиториев на сайте
+    - cron: "17 4 * * *" # раз в сутки — обновить список репозиториев и Discord-серверов на сайте
 
 concurrency:
   group: deploy-ndze
@@ -126,10 +126,16 @@ jobs:
             Write-Host "REPOS_TOKEN не задан — оставляю data/repos.json из репозитория"
           }
 
+      - name: Обновить данные Discord-серверов
+        continue-on-error: true # Discord не ответил — остаётся data/discord.json из репозитория
+        shell: pwsh
+        run: ./tools/sync-discord.ps1
+
       - name: Проверить сайт перед выкладкой
         run: |
           test -f index.html
           python3 -c "import json; d=json.load(open('data/repos.json', encoding='utf-8')); print(len(d['repos']), 'repos')"
+          python3 -c "import json; d=json.load(open('data/discord.json', encoding='utf-8')); print(len(d['servers']), 'discord servers')"
           # в файлах сайта не должно быть токенов и паролей (секреты живут только в GitHub Secrets)
           if grep -rIlE "github_pat_[A-Za-z0-9]|ghp_[A-Za-z0-9]{20}|BEGIN [A-Z ]*PRIVATE KEY" assets data api ./*.html ; then
             echo "::error::В файлах сайта найден секрет — убери его"; exit 1

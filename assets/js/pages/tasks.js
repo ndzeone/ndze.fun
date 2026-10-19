@@ -6,7 +6,7 @@ import { GAMES, TASK_STATUSES, DIFFICULTIES, LIMITS, byId } from "../data/consta
 import { checkTask } from "../data/validate.js";
 import { initMagnetic, initTilt } from "../core/fx.js";
 import { setupModal, shake } from "../core/modal.js";
-import { $, $$, esc, plural, timeAgo, formatDate, toast, initial, motion, wait } from "../core/util.js";
+import { $, $$, esc, plural, timeAgo, formatDate, toast, avatarHTML, motion, wait } from "../core/util.js";
 
 await mountLayout("tasks");
 
@@ -276,7 +276,7 @@ function taskCard(t, i, me) {
     ${t.adminNote ? `<p class="note-bubble"><b>ndze:</b> ${esc(t.adminNote)}</p>` : ""}
     ${isAdmin ? adminTools(t) : ""}
     <footer class="task-foot">
-      <span class="avatar sm" aria-hidden="true">${esc(initial(t.authorNick))}</span>
+      ${avatarHTML(t.authorNick, t.authorAvatar, { size: "sm" })}
       <span class="task-author"><b>${esc(t.authorNick)}</b><time datetime="${esc(t.createdAt)}" title="${esc(formatDate(t.createdAt))}">${esc(timeAgo(t.createdAt))}</time></span>
       ${canDelete ? '<button class="btn btn-danger btn-xs del-btn" type="button" data-action="delete">Удалить</button>' : ""}
       <button class="vote-btn" type="button" data-action="vote" aria-pressed="${t.myVote}" aria-label="${esc(voteLabel(t))}">${VOTE_SVG}<span class="vote-n">${t.votes}</span></button>

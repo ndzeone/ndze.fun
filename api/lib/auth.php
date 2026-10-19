@@ -75,6 +75,7 @@ function session_login(string $userId): void
     session_begin(true);
     session_regenerate_id(true);
     $_SESSION['uid'] = $userId;
+    $_SESSION['epoch'] = (int) (q_one('SELECT auth_epoch FROM user_profiles WHERE user_id = ?', [$userId])['auth_epoch'] ?? 0);
     $_SESSION['cookie_at'] = time();
     q('UPDATE users SET last_login_at = ? WHERE id = ?', [now_db(), $userId]);
     current_user(true);
@@ -100,7 +101,10 @@ function is_admin_row(?string $email, ?string $discordId): bool
     return false;
 }
 
-const USER_COLS = 'id, nick, email, discord_id, password_hash, created_at';
+// Пользователь + файл аватарки из профиля (профиля может не быть). Дальше — WHERE u.<поле> = ?
+const USER_SELECT = 'SELECT u.id, u.nick, u.email, u.discord_id, u.password_hash, u.created_at, p.avatar_file,
+    COALESCE(p.auth_epoch, 0) AS auth_epoch
+  FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id';
 
 /** Строка users → User из контракта. */
 function public_user(?array $u): ?array
@@ -111,6 +115,7 @@ function public_user(?array $u): ?array
         'nick' => $u['nick'],
         'email' => $u['email'],
         'role' => is_admin_row($u['email'], $u['discord_id']) ? 'admin' : 'user',
+        'avatarUrl' => avatar_url($u['id'], $u['avatar_file'] ?? null),
         'createdAt' => iso($u['created_at']),
     ];
 }
@@ -124,9 +129,10 @@ function current_user(bool $reload = false): ?array
     if (!session_begin(false)) return null;
     $uid = $_SESSION['uid'] ?? null;
     if (!is_string($uid) || $uid === '') return null;
-    $u = q_one('SELECT ' . USER_COLS . ' FROM users WHERE id = ?', [$uid]);
-    if (!$u) {
-        unset($_SESSION['uid']);
+    $u = q_one(USER_SELECT . ' WHERE u.id = ?', [$uid]);
+    // нет пользователя или после входа сменили пароль / отвязали Discord — сессия больше не действует
+    if (!$u || (int) ($_SESSION['epoch'] ?? 0) !== (int) $u['auth_epoch']) {
+        unset($_SESSION['uid'], $_SESSION['epoch']);
         return null;
     }
     $u['role'] = is_admin_row($u['email'], $u['discord_id']) ? 'admin' : 'user';
@@ -199,7 +205,7 @@ function auth_login(array $b): array
     $subject = ip_subject();
     rate_limit_check('login', $subject); // 10 неудачных попыток / 15 мин на IP
 
-    $u = q_one('SELECT ' . USER_COLS . ' FROM users WHERE email = ?', [$email]);
+    $u = q_one(USER_SELECT . ' WHERE u.email = ?', [$email]);
     $hash = $u['password_hash'] ?? null;
     // для несуществующего email тоже считаем хеш — одинаковое время ответа
     $ok = password_verify($password, is_string($hash) ? $hash : '$2y$10$abcdefghijklmnopqrstuuJ0e0X2W9q6l7k0Yy5W8m8wWmH2T3u7G');

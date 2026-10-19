@@ -1,0 +1,23 @@
+{
+    "generatedAt":  "2026-10-19T18:08:11Z",
+    "servers":  {
+                    "fARfeAYWmb":  {
+                                       "id":  "1341029477471359077",
+                                       "name":  "RO-OM",
+                                       "description":  "Шёпотом, говорю вам тут что-то странное будет открывать ;)",
+                                       "icon":  "data/discord/1341029477471359077-icon.webp",
+                                       "members":  79,
+                                       "online":  20,
+                                       "channel":  "чат"
+                                   },
+                    "9UgDQJJFyb":  {
+                                       "id":  "1524885681053110392",
+                                       "name":  "MythosMC",
+                                       "description":  "MythosMC | Minecraft Survival \u0026 RPG",
+                                       "icon":  "data/discord/1524885681053110392-icon.webp",
+                                       "members":  6,
+                                       "online":  6,
+                                       "channel":  "💬｜общение"
+                                   }
+                }
+}
