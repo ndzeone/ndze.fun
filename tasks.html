@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Задания на стрим — ndze</title>
+  <meta name="description" content="Предлагай ndze челленджи на стрим в Minecraft, CS2 и GTA 5 RP на сервере NovaRP и голосуй за лучшие.">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/tasks.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main">
+    <header class="page-head tasks-head">
+      <div class="tasks-head-text">
+        <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>Челленджи от зрителей</p>
+        <h1>Задания на стрим</h1>
+        <p>Придумай, что ndze сделает в прямом эфире в Minecraft, CS2 или GTA&nbsp;5&nbsp;RP на сервере NovaRP. Голосуй за лучшие идеи — самые популярные попадают на стрим.</p>
+      </div>
+      <button class="btn btn-primary magnetic suggest-btn" type="button" id="suggestBtn">
+        <span aria-hidden="true">+</span><span>Предложить задание</span>
+      </button>
+    </header>
+
+    <section class="games-section" aria-labelledby="gamesTitle">
+      <h2 class="sr-only" id="gamesTitle">Игры</h2>
+      <div class="game-grid" id="gameGrid" role="group" aria-label="Фильтр по игре"></div>
+    </section>
+
+    <section class="live-strip glass" id="liveStrip" aria-labelledby="liveTitle" hidden>
+      <div class="live-strip-head">
+        <span class="live-dot" aria-hidden="true"></span>
+        <h2 id="liveTitle">Сейчас на стриме</h2>
+      </div>
+      <ul class="live-list" id="liveList"></ul>
+    </section>
+
+    <section class="board" id="board" aria-labelledby="boardTitle">
+      <div class="section-head">
+        <span class="section-index">//</span>
+        <h2 id="boardTitle">Все задания</h2>
+        <span class="spacer"></span>
+        <fieldset class="sort-box">
+          <legend class="sr-only">Сортировка</legend>
+          <div class="segmented" id="sortSeg">
+            <input type="radio" name="sort" id="sortTop" value="top" checked><label for="sortTop">Популярные</label>
+            <input type="radio" name="sort" id="sortNew" value="new"><label for="sortNew">Новые</label>
+          </div>
+        </fieldset>
+      </div>
+      <div class="chips status-chips" id="statusChips" role="group" aria-label="Фильтр по статусу"></div>
+      <p class="sr-only" id="resultsLive" aria-live="polite"></p>
+      <div class="task-list" id="taskList" aria-busy="true">
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="modal wide" id="taskModal" aria-labelledby="taskModalTitle">
+    <div class="modal-frame"><div class="modal-card">
+      <span class="modal-ticks" aria-hidden="true"><i></i><i></i><i></i></span>
+      <button class="modal-close" type="button" data-close aria-label="Закрыть">✕</button>
+      <p class="modal-logo">ndze · стрим</p>
+      <h2 id="taskModalTitle">Новое задание</h2>
+      <p class="modal-sub">Опиши челлендж так, чтобы его можно было выполнить за стрим. Чем понятнее — тем больше шансов.</p>
+      <form id="taskForm" novalidate>
+        <fieldset class="form-group" data-field="game" aria-describedby="tGame-err">
+          <legend>Игра</legend>
+          <div class="segmented" id="tGameSeg"></div>
+          <span class="error-msg" id="tGame-err"></span>
+        </fieldset>
+        <div class="field" data-field="title">
+          <input id="tTitle" name="title" type="text" placeholder=" " maxlength="80" autocomplete="off" aria-describedby="tTitle-err">
+          <label for="tTitle">Название задания</label>
+          <span class="error-msg" id="tTitle-err"></span>
+        </div>
+        <div class="field has-count" data-field="description">
+          <textarea id="tDesc" name="description" placeholder=" " maxlength="1500" aria-describedby="tDesc-count tDesc-err"></textarea>
+          <label for="tDesc">Подробности (необязательно)</label>
+          <span class="hint char-count" id="tDesc-count" aria-live="off">0 / 1500</span>
+          <span class="error-msg" id="tDesc-err"></span>
+        </div>
+        <fieldset class="form-group" data-field="difficulty" aria-describedby="tDiff-err">
+          <legend>Сложность</legend>
+          <div class="segmented" id="tDiffSeg"></div>
+          <span class="error-msg" id="tDiff-err"></span>
+        </fieldset>
+        <p class="form-error" role="alert"></p>
+        <button class="btn btn-primary btn-block" type="submit"><span class="submit-text">Отправить задание</span><span class="spinner" aria-hidden="true"></span></button>
+      </form>
+    </div></div>
+  </dialog>
+
+  <script type="module" src="assets/js/pages/tasks.js"></script>
+</body>
+</html>

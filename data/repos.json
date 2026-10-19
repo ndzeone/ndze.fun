@@ -1,0 +1,356 @@
+{
+    "generatedAt":  "2026-10-19T03:07:11Z",
+    "user":  {
+                 "login":  "ndzeone",
+                 "name":  "Dz2ell",
+                 "avatarUrl":  "https://avatars.githubusercontent.com/u/223073747?v=4",
+                 "htmlUrl":  "https://github.com/ndzeone",
+                 "bio":  "",
+                 "publicRepos":  16,
+                 "followers":  2
+             },
+    "repos":  [
+                  {
+                      "name":  "ndze.gramm.tg",
+                      "fullName":  "ndzeone/ndze.gramm.tg",
+                      "description":  "это открытый форк на телеграмм, со своими функциями",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "TypeScript",
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "master",
+                      "size":  14106,
+                      "updatedAt":  "2026-10-15T10:58:56Z",
+                      "pushedAt":  "2026-10-15T10:58:42Z",
+                      "createdAt":  "2026-10-15T10:53:40Z",
+                      "htmlUrl":  "https://github.com/ndzeone/ndze.gramm.tg",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "ndze_laucher_minecraft",
+                      "fullName":  "ndzeone/ndze_laucher_minecraft",
+                      "description":  "ndze_laucher_minecraft - бесплатный и с открытым кодом ;)",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "JavaScript",
+                      "stars":  1,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  1799,
+                      "updatedAt":  "2026-10-09T13:45:14Z",
+                      "pushedAt":  "2026-10-09T13:45:10Z",
+                      "createdAt":  "2026-10-09T07:48:09Z",
+                      "htmlUrl":  "https://github.com/ndzeone/ndze_laucher_minecraft",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "musical_offline_programm",
+                      "fullName":  "ndzeone/musical_offline_programm",
+                      "description":  "Моя собственая идея ;)",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "Swift",
+                      "stars":  1,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  1715,
+                      "updatedAt":  "2026-09-30T14:32:00Z",
+                      "pushedAt":  "2026-09-30T14:44:32Z",
+                      "createdAt":  "2026-09-29T13:12:40Z",
+                      "htmlUrl":  "https://github.com/ndzeone/musical_offline_programm",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "CrateLegacy",
+                      "fullName":  "ndzeone/CrateLegacy",
+                      "description":  "Лаунчер Minecraft для Windows: ванильные версии, Fabric, Forge, Forge + OptiFine и OptiFine из одного окна. Java/Swing, тёмная тема, автоподбор Java, каталог модов Modrinth.",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "Java",
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  1756,
+                      "updatedAt":  "2026-09-20T10:50:55Z",
+                      "pushedAt":  "2026-09-20T10:51:34Z",
+                      "createdAt":  "2026-09-20T10:09:17Z",
+                      "htmlUrl":  "https://github.com/ndzeone/CrateLegacy",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "CrateLegacy-",
+                      "fullName":  "ndzeone/CrateLegacy-",
+                      "description":  "CrateLegacy - отсылка на лаунчера легаси наш добрый",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  null,
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  0,
+                      "updatedAt":  "2026-09-20T09:44:52Z",
+                      "pushedAt":  "2026-09-20T09:44:52Z",
+                      "createdAt":  "2026-09-20T09:44:51Z",
+                      "htmlUrl":  "https://github.com/ndzeone/CrateLegacy-",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "AuroVless-2.0",
+                      "fullName":  "ndzeone/AuroVless-2.0",
+                      "description":  "Умный VLESS-клиент для Windows на ядре sing-box: подписки, несколько серверов с автовыбором быстрейшего и раздельная маршрутизация — сайты РФ напрямую, остальное через VPN",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "C#",
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+                                     "proxy",
+                                     "reality",
+                                     "sing-box",
+                                     "vless",
+                                     "vpn",
+                                     "windows",
+                                     "wpf"
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  153,
+                      "updatedAt":  "2026-09-20T09:28:47Z",
+                      "pushedAt":  "2026-09-20T09:28:35Z",
+                      "createdAt":  "2026-09-20T09:14:45Z",
+                      "htmlUrl":  "https://github.com/ndzeone/AuroVless-2.0",
+                      "homepage":  "https://github.com/ndzeone/AuroVless-2.0/releases/latest"
+                  },
+                  {
+                      "name":  "ndze-vpn",
+                      "fullName":  "ndzeone/ndze-vpn",
+                      "description":  "Минималистичный VPN-клиент для Windows: VLESS/Reality, подписки, умная маршрутизация для РФ, активность в Discord",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "C#",
+                      "stars":  2,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  228,
+                      "updatedAt":  "2026-09-19T12:56:47Z",
+                      "pushedAt":  "2026-09-19T12:56:46Z",
+                      "createdAt":  "2026-09-17T14:31:49Z",
+                      "htmlUrl":  "https://github.com/ndzeone/ndze-vpn",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "h1cloud_vpn",
+                      "fullName":  "ndzeone/h1cloud_vpn",
+                      "description":  "H1 VPN — клиент для VPN-подключений (VLESS, Trojan, Hysteria2 и др.) на базе sing-box с умным раздельным туннелированием: российские IP идут напрямую, остальной трафик — через VPN. Поддержка нескольких серверов и подписок, TUN-режим, Kill-Switch, автообновление. Windows-клиент на Python/PyQt6.",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  null,
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  1,
+                      "updatedAt":  "2026-09-14T13:58:10Z",
+                      "pushedAt":  "2026-09-16T03:49:42Z",
+                      "createdAt":  "2026-09-14T13:57:49Z",
+                      "htmlUrl":  "https://github.com/ndzeone/h1cloud_vpn",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "Kessu",
+                      "fullName":  "ndzeone/Kessu",
+                      "description":  "Kessu — a browser that respects you",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  null,
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  0,
+                      "updatedAt":  "2026-08-31T05:41:56Z",
+                      "pushedAt":  "2026-08-31T05:40:42Z",
+                      "createdAt":  "2026-08-31T05:40:41Z",
+                      "htmlUrl":  "https://github.com/ndzeone/Kessu",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "my_custom_messenger",
+                      "fullName":  "ndzeone/my_custom_messenger",
+                      "description":  "Мой кастомный мессенджер, в котором будет удобно общаться и показывать демонстрации экрана свою друзьям",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  null,
+                      "stars":  1,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  0,
+                      "updatedAt":  "2026-08-17T17:34:33Z",
+                      "pushedAt":  "2026-08-17T03:30:48Z",
+                      "createdAt":  "2026-08-17T03:30:47Z",
+                      "htmlUrl":  "https://github.com/ndzeone/my_custom_messenger",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "my_list_vpn",
+                      "fullName":  "ndzeone/my_list_vpn",
+                      "description":  "Простой VPN-клиент для новичков. Подключайтесь к VPN по ключу, используйте туннелирование для отдельных программ и сайтов. Ваши ключи хранятся только локально на устройстве и никогда не отправляются на сервер.",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "JavaScript",
+                      "stars":  1,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  3709,
+                      "updatedAt":  "2026-08-17T17:34:35Z",
+                      "pushedAt":  "2026-08-11T10:51:31Z",
+                      "createdAt":  "2026-08-11T06:56:14Z",
+                      "htmlUrl":  "https://github.com/ndzeone/my_list_vpn",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "custom_sites",
+                      "fullName":  "ndzeone/custom_sites",
+                      "description":  "Моя кастомная страница сайта :)",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "HTML",
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  6,
+                      "updatedAt":  "2026-02-03T12:32:23Z",
+                      "pushedAt":  "2026-02-03T12:32:19Z",
+                      "createdAt":  "2026-02-03T12:19:36Z",
+                      "htmlUrl":  "https://github.com/ndzeone/custom_sites",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "ind.project",
+                      "fullName":  "ndzeone/ind.project",
+                      "description":  "",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "JavaScript",
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  6,
+                      "updatedAt":  "2026-01-28T05:58:45Z",
+                      "pushedAt":  "2026-01-28T05:58:42Z",
+                      "createdAt":  "2026-01-28T05:55:43Z",
+                      "htmlUrl":  "https://github.com/ndzeone/ind.project",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "UooWorld",
+                      "fullName":  "ndzeone/UooWorld",
+                      "description":  "",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "HTML",
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  81,
+                      "updatedAt":  "2025-12-15T18:22:11Z",
+                      "pushedAt":  "2025-12-15T18:22:08Z",
+                      "createdAt":  "2025-12-15T18:02:18Z",
+                      "htmlUrl":  "https://github.com/ndzeone/UooWorld",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "uooworld.site",
+                      "fullName":  "ndzeone/uooworld.site",
+                      "description":  "UooWorld — анархия 26 года, мрачный техно‑хаос без вайпов и правил. Мир живёт годами, каждая база и взрыв навсегда остаются в истории. Никаких приватов и поблажек, только жёсткое выживание, кланы и войны в тёмно‑серо‑зелёной вселенной, не похожей ни на одну другую анархию.",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  null,
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  4,
+                      "updatedAt":  "2025-12-08T18:42:50Z",
+                      "pushedAt":  "2025-12-08T18:42:46Z",
+                      "createdAt":  "2025-12-08T18:40:53Z",
+                      "htmlUrl":  "https://github.com/ndzeone/uooworld.site",
+                      "homepage":  ""
+                  },
+                  {
+                      "name":  "twitch-clone",
+                      "fullName":  "ndzeone/twitch-clone",
+                      "description":  "Twitch Clone — Full-Stack Live Streaming Platform A full-stack live streaming platform built with Node.js, Express, HTML/CSS, and vanilla JavaScript, featuring RTMP ingest, HLS playback, real-time chat (Socket.IO), JWT authentication, and OAuth login via Google \u0026 GitHub. Includes Docker support and deployment instructions.",
+                      "private":  false,
+                      "fork":  false,
+                      "archived":  false,
+                      "language":  "JavaScript",
+                      "stars":  0,
+                      "forks":  0,
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "size":  12,
+                      "updatedAt":  "2025-08-10T07:59:44Z",
+                      "pushedAt":  "2025-08-10T07:59:41Z",
+                      "createdAt":  "2025-08-10T07:56:55Z",
+                      "htmlUrl":  "https://github.com/ndzeone/twitch-clone",
+                      "homepage":  ""
+                  }
+              ]
+}

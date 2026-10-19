@@ -1,0 +1,49 @@
+# Настройки Apache для хостинга Timeweb
+
+DirectoryIndex index.html
+# «Options -Indexes» не ставим: если хостинг запрещает Options в .htaccess, весь сайт отдаёт 500.
+# Список файлов в папках на Timeweb и так выключен по умолчанию.
+AddDefaultCharset UTF-8
+
+# Типы файлов
+AddType font/woff2 .woff2
+AddType image/svg+xml .svg
+AddType application/json .json
+AddType text/javascript .js
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # HTTPS: раскомментируй 4 строки ниже ПОСЛЕ выпуска SSL-сертификата в панели Timeweb
+  # (иначе сайт уйдёт в редирект на неработающий https)
+  # RewriteCond %{HTTPS} !=on
+  # RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  # RewriteCond %{HTTP_HOST} ^(www\.)?ndze\.fun$ [NC]
+  # RewriteRule ^ https://ndze.fun%{REQUEST_URI} [L,R=301]
+
+  # www.ndze.fun → ndze.fun
+  RewriteCond %{HTTP_HOST} ^www\.ndze\.fun$ [NC]
+  RewriteRule ^ %{REQUEST_SCHEME}://ndze.fun%{REQUEST_URI} [L,R=301]
+
+  # Скрытые файлы (.git, .env и т.п.) — запрещены
+  RewriteRule (^|/)\.(?!well-known/) - [F]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+  # HTML и список репозиториев — всегда свежие, остальное кэшируется на неделю
+  <FilesMatch "\.(html|json)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(css|js|svg|png|jpg|jpeg|webp|gif|woff2)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+</IfModule>
+
+# Несуществующая страница → главная (с кодом 404). Для пропавших .js/.css браузер всё равно
+# получит 404, так что подмена на HTML ничего не ломает.
+ErrorDocument 404 /index.html

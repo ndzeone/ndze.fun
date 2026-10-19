@@ -1,0 +1,123 @@
+/* =========================================================
+   repos.css — страница «Проекты» (repos.html).
+   Карточки репозиториев — в repo-card.css.
+   ========================================================= */
+
+/* ---------- Шапка страницы + профиль ---------- */
+.repos-head {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); align-items: end; gap: 28px 40px;
+}
+.page-head .repos-kicker {
+  display: flex; align-items: center; gap: 10px; margin: 0 0 16px;
+  font: 600 .9rem var(--pixel); color: var(--lime); letter-spacing: .06em; text-transform: uppercase;
+}
+.repos-head h1 { overflow-wrap: anywhere; }
+.repos-head h1 .accent { color: var(--lime); text-shadow: 0 0 34px rgba(93, 214, 44, .45); }
+
+.profile { display: grid; gap: 14px; padding: 20px; min-width: 0; }
+.profile[aria-busy="true"] { min-height: 190px; align-content: start; }
+.profile__row { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.profile__avatar {
+  flex: none; width: 64px; height: 64px; min-height: 0; border-radius: 50%; object-fit: cover;
+  border: 2px solid var(--lime); box-shadow: 0 0 0 4px rgba(93, 214, 44, .15), 0 0 26px rgba(93, 214, 44, .45);
+}
+.profile__avatar--empty {
+  display: grid; place-items: center; font: 700 1.6rem var(--pixel); color: var(--black);
+  background: linear-gradient(135deg, var(--lime), var(--forest));
+}
+.profile__who { display: grid; gap: 6px; min-width: 0; flex: 1; }
+.profile__line { display: block; min-height: 14px; height: 14px; border-radius: 8px; }
+.profile__line.short { width: 55%; }
+.profile__name { font: 700 1.35rem/1.1 var(--pixel); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile__login { font: 500 .88rem var(--mono); color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile__bio { color: var(--muted); font-size: .92rem; overflow-wrap: anywhere; }
+.profile__facts { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--faint); font-size: .88rem; padding-top: 12px; border-top: 1px dashed var(--line); }
+.profile__facts b { color: var(--text); font: 700 1.05rem var(--pixel); margin-right: 2px; }
+.profile__btn { justify-self: start; }
+.profile__btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+/* ---------- Плитки статистики ---------- */
+.repos-stats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;
+  padding: 34px 0 0;
+}
+.stat {
+  position: relative; overflow: hidden; display: grid; gap: 2px; padding: 18px 20px; border-radius: var(--r-sm);
+}
+.stat::after {
+  content: ""; position: absolute; right: -30px; top: -30px; width: 90px; height: 90px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(93, 214, 44, .22), transparent 70%); pointer-events: none;
+}
+.stat__num { font: 700 clamp(1.9rem, 4vw, 2.6rem)/1 var(--pixel); color: var(--lime); text-shadow: 0 0 22px rgba(93, 214, 44, .4); font-variant-numeric: tabular-nums; }
+.stat__label { color: var(--muted); font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+
+.repos-note {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px;
+  color: var(--faint); font-size: .88rem;
+}
+.repos-note time { color: var(--muted); font-weight: 700; }
+
+/* ---------- Подсказка про закрытые ---------- */
+.repos-hint {
+  display: flex; align-items: flex-start; gap: 16px; margin-top: 22px; padding: 18px 20px;
+  border-color: rgba(255, 176, 46, .28);
+  background: linear-gradient(160deg, rgba(255, 176, 46, .07), rgba(20, 20, 20, .72));
+}
+.repos-hint__icon {
+  flex: none; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px;
+  background: rgba(255, 176, 46, .12); border: 1px solid rgba(255, 176, 46, .3); color: var(--warn);
+}
+.repos-hint__icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.repos-hint h2 { font: 700 1.05rem/1.3 var(--pixel); text-transform: none; letter-spacing: .01em; margin-bottom: 4px; }
+.repos-hint p { color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+.repos-hint b { color: var(--text); }
+.repos-hint code, .repos-note code {
+  font: 600 .85em var(--mono); color: var(--lime); background: rgba(93, 214, 44, .1);
+  padding: 1px 6px; border-radius: 6px; white-space: nowrap;
+}
+
+/* ---------- Список ---------- */
+.repos-list { padding-top: 46px; }
+.repos-count { color: var(--faint); font-size: .9rem; font-weight: 600; }
+
+.toolbar { display: grid; gap: 14px; margin-bottom: 26px; }
+.toolbar__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 260px); gap: 12px; }
+.toolbar .field { margin: 0; }
+.toolbar__search label { max-width: calc(100% - 64px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toolbar__search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.toolbar__search-icon {
+  position: absolute; right: 16px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%); pointer-events: none;
+  fill: none; stroke: var(--faint); stroke-width: 2; stroke-linecap: round;
+}
+.toolbar__search input:focus ~ .toolbar__search-icon { stroke: var(--lime); }
+.toolbar__group { display: flex; align-items: center; gap: 10px 14px; min-width: 0; }
+.toolbar__label {
+  flex: none; width: 64px; font: 600 .8rem var(--pixel); color: var(--faint); text-transform: uppercase; letter-spacing: .08em;
+}
+.toolbar__group .chips { min-width: 0; }
+.toolbar .chip { padding: 7px 14px; font-size: .86rem; }
+.toolbar .chip:focus-visible { outline-offset: 2px; border-radius: var(--pill); }
+.lang-dot { width: 9px; height: 9px; flex: none; border-radius: 50%; background: var(--lang, #8a8a8a); box-shadow: 0 0 8px var(--lang, transparent); }
+.chip[aria-pressed="true"] .lang-dot { box-shadow: 0 0 0 2px rgba(15, 15, 15, .35); }
+
+.repos-error p { max-width: 52ch; }
+
+/* ---------- Адаптив ---------- */
+@media (max-width: 900px) {
+  .repos-head { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .profile { max-width: 520px; }
+  .repos-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .toolbar__row { grid-template-columns: minmax(0, 1fr); }
+  .toolbar__group { flex-direction: column; align-items: flex-start; }
+  .toolbar__label { width: auto; }
+  .repos-stats { gap: 10px; padding-top: 26px; }
+  .stat { padding: 14px 16px; }
+  .repos-hint { flex-direction: column; gap: 12px; padding: 16px; }
+  .repos-list { padding-top: 36px; }
+}
+@media (max-width: 380px) {
+  .toolbar .chip { padding: 6px 12px; }
+  .profile { padding: 16px; }
+}

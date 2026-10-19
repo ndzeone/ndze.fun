@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Код проекта — ndze</title>
+  <meta name="description" content="Просмотр кода открытого репозитория ndze прямо на сайте">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://api.github.com" crossorigin>
+  <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/repo.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main" class="repo-main">
+    <a class="back-link" href="repos.html"><span aria-hidden="true">←</span> Все проекты</a>
+    <div id="repoApp" class="repo-app" aria-busy="true">
+      <div class="repo-head glass is-loading" aria-hidden="true">
+        <div class="skeleton sk-title"></div>
+        <div class="skeleton sk-line"></div>
+        <div class="skeleton sk-line short"></div>
+      </div>
+      <div class="browser" aria-hidden="true">
+        <div class="tree-panel glass"><div class="skeleton sk-tree"></div></div>
+        <div class="content-panel glass"><div class="skeleton sk-code"></div></div>
+      </div>
+      <p class="sr-only" role="status">Загружаю репозиторий…</p>
+    </div>
+  </main>
+  <script type="module" src="assets/js/pages/repo.js"></script>
+</body>
+</html>

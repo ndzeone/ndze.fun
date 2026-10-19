@@ -1,0 +1,117 @@
+/* =========================================================
+   repo-card.css — карточка репозитория (assets/js/core/repo-card.js).
+   Используется на странице «Проекты» и на главной.
+   ========================================================= */
+
+.repo-grid {
+  display: grid; gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+}
+
+.repo-card {
+  --mx: 50%; --my: 50%;
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 220px;
+  padding: 20px 20px 18px; border-radius: var(--r);
+  color: var(--text);
+  background: linear-gradient(160deg, rgba(48, 48, 48, .6), rgba(20, 20, 20, .72));
+  border: 1px solid var(--line); box-shadow: var(--glass-hi);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  transition: transform .35s var(--ease), border-color .3s, box-shadow .3s;
+  animation: repoCardIn .7s var(--ease) var(--d, 0ms) backwards;
+  will-change: transform;
+}
+@keyframes repoCardIn { from { opacity: 0; transform: translateY(26px) scale(.97); } }
+
+/* подсветка за курсором */
+.repo-card::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0;
+  background: radial-gradient(320px circle at var(--mx) var(--my), rgba(93, 214, 44, .17), transparent 62%);
+  transition: opacity .35s;
+}
+.repo-card:hover, .repo-card:focus-visible {
+  border-color: rgba(93, 214, 44, .45);
+  box-shadow: var(--glass-hi), 0 18px 50px -22px rgba(93, 214, 44, .55);
+}
+.repo-card:hover::before, .repo-card:focus-visible::before { opacity: 1; }
+.repo-card:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; border-radius: var(--r); }
+
+.repo-card__top { display: flex; align-items: center; gap: 10px; min-height: 30px; }
+.repo-card__icon {
+  flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px;
+  background: rgba(93, 214, 44, .1); border: 1px solid rgba(93, 214, 44, .25); color: var(--lime);
+}
+.repo-card.is-private .repo-card__icon { background: rgba(255, 176, 46, .1); border-color: rgba(255, 176, 46, .3); color: var(--warn); }
+.repo-card svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.repo-card__icon svg { width: 18px; height: 18px; }
+.repo-card__badges { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 0; }
+.repo-card__badges .badge svg { width: 12px; height: 12px; stroke-width: 2.2; }
+.repo-card__go {
+  flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
+  border: 1px solid var(--line); color: var(--faint);
+  transition: color .25s, background-color .25s, border-color .25s, transform .35s var(--ease);
+}
+.repo-card:hover .repo-card__go, .repo-card:focus-visible .repo-card__go {
+  color: var(--black); background: var(--lime); border-color: transparent; transform: rotate(45deg);
+}
+
+.repo-card__name {
+  font: 600 1.28rem/1.15 var(--pixel); letter-spacing: .01em;
+  overflow-wrap: anywhere; transition: color .25s;
+}
+.repo-card:hover .repo-card__name, .repo-card:focus-visible .repo-card__name { color: var(--lime); }
+
+.repo-card__desc {
+  color: var(--muted); font-size: .92rem; line-height: 1.5;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.repo-card__desc.is-empty { color: var(--faint); font-style: italic; }
+
+.repo-card__topics { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.repo-card__topics li {
+  font: 500 .74rem var(--mono); color: var(--lime); padding: 2px 8px; border-radius: var(--pill);
+  background: rgba(93, 214, 44, .08); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.repo-card__meta {
+  margin-top: auto; padding-top: 14px; border-top: 1px dashed var(--line);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px;
+  color: var(--faint); font-size: .82rem; font-weight: 600;
+}
+.repo-card__meta > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.repo-card__meta svg { width: 14px; height: 14px; }
+.repo-card__lang { color: var(--muted); }
+.repo-card__lang i {
+  width: 10px; height: 10px; border-radius: 50%; background: var(--lang, #8a8a8a);
+  box-shadow: 0 0 0 2px rgba(248, 248, 248, .08), 0 0 10px var(--lang, transparent);
+}
+.repo-card__time { margin-left: auto; }
+
+/* ---------- закрытый: замок при наведении / фокусе ---------- */
+.repo-card.is-private { cursor: default; }
+.repo-card__lock {
+  position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; justify-items: center; gap: 10px;
+  font: 700 1.2rem var(--pixel); text-transform: uppercase; letter-spacing: .04em; color: var(--warn);
+  background: rgba(15, 15, 15, .62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; transition: opacity .3s; pointer-events: none;
+}
+.repo-card__lock svg { width: 40px; height: 40px; stroke-width: 1.6; filter: drop-shadow(0 0 12px rgba(255, 176, 46, .6)); transform: translateY(6px) scale(.9); transition: transform .4s var(--ease); }
+.repo-card.is-private:hover .repo-card__lock, .repo-card.is-private:focus .repo-card__lock { opacity: 1; }
+.repo-card.is-private:hover .repo-card__lock svg, .repo-card.is-private:focus .repo-card__lock svg { transform: none; }
+.repo-card.is-private:hover, .repo-card.is-private:focus {
+  border-color: rgba(255, 176, 46, .45); box-shadow: var(--glass-hi), 0 18px 50px -22px rgba(255, 176, 46, .45);
+}
+.repo-card.is-private:focus-visible { outline-color: var(--warn); }
+
+/* скелетон карточки, пустое состояние / ошибка — на всю ширину */
+.repo-grid .skeleton { min-height: 220px; }
+.repo-grid > .empty { grid-column: 1 / -1; }
+
+@media (max-width: 480px) {
+  .repo-card { padding: 18px 16px 16px; min-height: 0; }
+  .repo-card__meta { margin-top: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .repo-card { animation: none; }
+}

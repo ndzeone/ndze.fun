@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Проекты — ndze</title>
+  <meta name="description" content="Все проекты ndze на GitHub: открытые и закрытые репозитории.">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/repo-card.css">
+  <link rel="stylesheet" href="assets/css/repos.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main">
+    <header class="page-head repos-head">
+      <div class="repos-head__text">
+        <p class="repos-kicker"><span class="pulse-dot" aria-hidden="true"></span> GitHub · код и проекты</p>
+        <h1>Мои <span class="accent">проекты</span></h1>
+        <p>Всё, что я пишу: от VPN-клиентов до лаунчеров Minecraft. Открытые репозитории можно листать прямо здесь, у закрытых — только описание.</p>
+      </div>
+      <aside class="profile glass" id="profile" aria-label="Профиль GitHub" aria-busy="true">
+        <div class="profile__row">
+          <span class="profile__avatar skeleton"></span>
+          <div class="profile__who">
+            <span class="skeleton profile__line"></span>
+            <span class="skeleton profile__line short"></span>
+          </div>
+        </div>
+        <span class="skeleton profile__line"></span>
+      </aside>
+    </header>
+
+    <section class="repos-stats" aria-label="Статистика">
+      <div class="stat glass"><span class="stat__num" id="statTotal">—</span><span class="stat__label">всего</span></div>
+      <div class="stat glass"><span class="stat__num" id="statPublic">—</span><span class="stat__label">открытых</span></div>
+      <div class="stat glass"><span class="stat__num" id="statPrivate">—</span><span class="stat__label">закрытых</span></div>
+      <div class="stat glass"><span class="stat__num" id="statLangs">—</span><span class="stat__label">языков</span></div>
+    </section>
+
+    <p class="repos-note" id="repoNote" hidden></p>
+
+    <aside class="repos-hint glass" id="privateHint" hidden aria-labelledby="privateHintTitle">
+      <span class="repos-hint__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+      <div>
+        <h2 id="privateHintTitle">Закрытые репозитории пока не видны</h2>
+        <p>Чтобы они появились здесь, запусти <code>tools/sync-github.bat</code> и вставь токен GitHub с одним правом — <b>Metadata: Read-only</b>. На сайт попадут только название, описание и язык — код останется закрытым, а токен нигде не сохраняется.</p>
+      </div>
+    </aside>
+
+    <section class="repos-list" aria-labelledby="listTitle">
+      <div class="section-head">
+        <span class="section-index">01</span>
+        <h2 id="listTitle">Репозитории</h2>
+        <span class="spacer"></span>
+        <p class="repos-count" id="repoCount" aria-live="polite"></p>
+      </div>
+
+      <div class="toolbar" id="toolbar">
+        <div class="toolbar__row">
+          <div class="field toolbar__search">
+            <input id="q" name="q" type="search" class="has-icon" placeholder=" " autocomplete="off" spellcheck="false" aria-describedby="qHint">
+            <label for="q">Найти проект</label>
+            <svg class="toolbar__search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+            <span class="sr-only" id="qHint">Ищет по названию, описанию, языку и темам; список фильтруется по мере ввода</span>
+          </div>
+          <div class="field toolbar__sort">
+            <select id="sort" name="sort">
+              <option value="updated">Недавно обновлённые</option>
+              <option value="stars">По звёздам</option>
+              <option value="name">По имени</option>
+            </select>
+            <label for="sort">Сортировка</label>
+          </div>
+        </div>
+        <div class="toolbar__group">
+          <span class="toolbar__label" id="visLabel">Доступ</span>
+          <div class="chips" id="visChips" role="group" aria-labelledby="visLabel">
+            <button class="chip" type="button" data-vis="all" aria-pressed="true">Все <span class="count" data-count="all"></span></button>
+            <button class="chip" type="button" data-vis="public" aria-pressed="false">Открытые <span class="count" data-count="public"></span></button>
+            <button class="chip" type="button" data-vis="private" aria-pressed="false">Закрытые <span class="count" data-count="private"></span></button>
+          </div>
+        </div>
+        <div class="toolbar__group" id="langGroup" hidden>
+          <span class="toolbar__label" id="langLabel">Язык</span>
+          <div class="chips" id="langChips" role="group" aria-labelledby="langLabel"></div>
+        </div>
+      </div>
+
+      <div class="repo-grid" id="grid" aria-busy="true">
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="assets/js/pages/repos.js"></script>
+</body>
+</html>

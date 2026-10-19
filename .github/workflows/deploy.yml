@@ -1,0 +1,89 @@
+# Деплой сайта на хостинг Timeweb (ndze.fun) при каждом push в main.
+# Секреты (Settings → Secrets and variables → Actions → New repository secret):
+#   TIMEWEB_PASSWORD  — пароль от хостинга (обязательно)
+#   REPOS_TOKEN       — токен GitHub «Metadata: Read-only» на все репозитории (необязательно;
+#                       с ним на сайте появятся и закрытые репозитории)
+name: Deploy to ndze.fun
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * *" # раз в сутки — обновить список репозиториев на сайте
+
+concurrency:
+  group: deploy-ndze
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DEPLOY_HOST: vh466.timeweb.ru
+  DEPLOY_USER: co751467
+  DEPLOY_PATH: ndze/public_html/
+  # Публичный ключ сервера — защита от подмены хоста (получен с vh466.timeweb.ru)
+  DEPLOY_HOST_KEY: "vh466.timeweb.ru ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJkls3fNBXfNiF5nqwuZW5Xp7RUq+hmhiRjyDBdoTUJ"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Проверить секреты
+        env:
+          TIMEWEB_PASSWORD: ${{ secrets.TIMEWEB_PASSWORD }}
+        run: |
+          if [ -z "$TIMEWEB_PASSWORD" ]; then
+            echo "::error::Нет секрета TIMEWEB_PASSWORD (Settings → Secrets and variables → Actions)"
+            exit 1
+          fi
+
+      - name: Обновить список репозиториев (если есть REPOS_TOKEN)
+        env:
+          REPOS_TOKEN: ${{ secrets.REPOS_TOKEN }}
+        shell: pwsh
+        run: |
+          if ($env:REPOS_TOKEN) {
+            ./tools/sync-github.ps1 -Token $env:REPOS_TOKEN -Out "data/repos.json"
+          } else {
+            Write-Host "REPOS_TOKEN не задан — оставляю data/repos.json из репозитория"
+          }
+
+      - name: Проверить сайт перед выкладкой
+        run: |
+          test -f index.html
+          python3 -c "import json; d=json.load(open('data/repos.json', encoding='utf-8')); print(len(d['repos']), 'repos')"
+          # в выкладку не должен попасть секретный ключ Supabase (service_role / sb_secret_) — только публичный anon.
+          # "role":"service_role" внутри JWT — base64 в одном из трёх сдвигов
+          if grep -rIlE "service_role|sb_secret_|c2VydmljZV9yb2xl|cnZpY2Vfcm9s|ZXJ2aWNlX3Jv" assets data ./*.html ; then
+            echo "::error::В файлах сайта найден секретный ключ service_role — убери его"; exit 1
+          fi
+
+      - name: Выложить на хостинг (rsync по SSH)
+        env:
+          SSHPASS: ${{ secrets.TIMEWEB_PASSWORD }}
+        run: |
+          if ! command -v sshpass >/dev/null; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq sshpass >/dev/null
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          echo "$DEPLOY_HOST_KEY" > ~/.ssh/known_hosts
+          # --checksum: после checkout у всех файлов новое время, сравниваем по содержимому.
+          # --delete удаляет на сервере лишнее (в т.ч. заглушку index.htm), но не трогает
+          # исключённое в .deployignore (cgi-bin/, .well-known/).
+          sshpass -e rsync -rlpz --delete --checksum --itemize-changes \
+            --chmod=D755,F644 \
+            --exclude-from=.deployignore \
+            -e "ssh -o StrictHostKeyChecking=yes -o PubkeyAuthentication=no" \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH"
+
+      - name: Проверить, что сайт открывается
+        continue-on-error: true # пока DNS домена не настроен, шаг может не пройти
+        run: |
+          sleep 5
+          curl -fsS -o /dev/null -w "ndze.fun → HTTP %{http_code}\n" --max-time 20 https://ndze.fun/ \
+            || curl -fsS -o /dev/null -w "ndze.fun (http) → HTTP %{http_code}\n" --max-time 20 http://ndze.fun/

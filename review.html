@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Оценка работ — ndze</title>
+  <meta name="description" content="Присылай свои работы и фото — ndze оценит их на стриме, а ты доведёшь их до идеала.">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/review.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main">
+    <header class="page-head">
+      <h1>Оценка работ</h1>
+      <p>Присылай арт, дизайн, фото или код — ndze разберёт работу на стриме, подскажет, что улучшить, и вместе вы доведёте её до идеала.</p>
+    </header>
+
+    <ol class="steps" aria-label="Как это работает">
+      <li class="step glass reveal">
+        <span class="step-n" aria-hidden="true">01</span>
+        <span class="step-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        </span>
+        <b>Отправь работу</b>
+        <span class="step-sub">Картинки, пара слов о задумке — и в очередь</span>
+      </li>
+      <li class="step glass reveal">
+        <span class="step-n" aria-hidden="true">02</span>
+        <span class="step-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="11" r="2.2"/></svg>
+        </span>
+        <b>ndze оценит на стриме</b>
+        <span class="step-sub">Оценка от 1 до 10 и разбор в прямом эфире</span>
+      </li>
+      <li class="step glass reveal">
+        <span class="step-n" aria-hidden="true">03</span>
+        <span class="step-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg>
+        </span>
+        <b>Доработай по советам</b>
+        <span class="step-sub">Загружай новые версии и сравнивай «до/после»</span>
+      </li>
+      <li class="step glass reveal is-final">
+        <span class="step-n" aria-hidden="true">04</span>
+        <span class="step-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.5 6 .8-4.4 4.2 1.1 6L12 16.6 6.7 19.5l1.1-6L3.4 9.3l6-.8L12 3Z"/></svg>
+        </span>
+        <b>Идеал</b>
+        <span class="step-sub">Работа попадает в публичную галерею</span>
+      </li>
+    </ol>
+
+    <section class="board" aria-label="Работы">
+      <div class="board-bar">
+        <div class="board-tabs" role="tablist" aria-label="Разделы" id="tabs"></div>
+        <button class="btn btn-primary magnetic" type="button" id="newSubBtn">
+          <span aria-hidden="true">＋</span><span>Отправить работу</span>
+        </button>
+      </div>
+      <div class="board-panel" role="tabpanel" id="panel" tabindex="-1"></div>
+    </section>
+  </main>
+
+  <!-- Отправка работы -->
+  <dialog class="modal wide" id="submitModal" aria-labelledby="submitTitle">
+    <div class="modal-frame"><div class="modal-card">
+      <span class="modal-ticks" aria-hidden="true"><i></i><i></i><i></i></span>
+      <button class="modal-close" type="button" data-close aria-label="Закрыть">✕</button>
+      <p class="modal-logo">ndze · оценка</p>
+      <h2 id="submitTitle">Новая работа</h2>
+      <p class="modal-sub">Первая версия попадёт в очередь со статусом «Ждёт оценки».</p>
+      <form id="submitForm" novalidate>
+        <div class="field">
+          <input id="sTitle" name="title" type="text" placeholder=" " maxlength="80" autocomplete="off" aria-describedby="sTitle-err">
+          <label for="sTitle">Название работы</label>
+          <span class="error-msg" id="sTitle-err"></span>
+        </div>
+
+        <fieldset class="fieldset" data-field="category" aria-describedby="sCat-err">
+          <legend>Категория</legend>
+          <div class="segmented" id="sCats"></div>
+          <span class="error-msg" id="sCat-err"></span>
+        </fieldset>
+
+        <div class="field">
+          <textarea id="sDesc" name="description" placeholder=" " maxlength="1500" aria-describedby="sDesc-hint sDesc-count sDesc-err"></textarea>
+          <label for="sDesc">Описание</label>
+          <span class="counter" id="sDesc-count" aria-live="polite">0 / 1500</span>
+          <span class="hint" id="sDesc-hint">Идея, инструменты, что смущает — чем подробнее, тем точнее разбор</span>
+          <span class="error-msg" id="sDesc-err"></span>
+        </div>
+
+        <div class="picker" data-field="files" id="sPicker"></div>
+
+        <div class="field">
+          <input id="sNote" name="note" type="text" placeholder=" " maxlength="500" autocomplete="off" aria-describedby="sNote-err">
+          <label for="sNote">Заметка к версии (необязательно)</label>
+          <span class="error-msg" id="sNote-err"></span>
+        </div>
+
+        <p class="form-error" role="alert"></p>
+        <button class="btn btn-primary btn-block" type="submit"><span>Отправить на оценку</span><span class="spinner" aria-hidden="true"></span></button>
+      </form>
+    </div></div>
+  </dialog>
+
+  <!-- Карточка работы -->
+  <dialog class="modal wide detail-modal" id="detailModal" aria-labelledby="dTitle">
+    <div class="modal-frame"><div class="modal-card" id="detailCard"></div></div>
+  </dialog>
+
+  <!-- Новая версия -->
+  <dialog class="modal wide" id="versionModal" aria-labelledby="vTitle">
+    <div class="modal-frame"><div class="modal-card">
+      <span class="modal-ticks" aria-hidden="true"><i></i><i></i><i></i></span>
+      <button class="modal-close" type="button" data-close aria-label="Закрыть">✕</button>
+      <p class="modal-logo" id="vFor">доработка</p>
+      <h2 id="vTitle">Новая версия</h2>
+      <p class="modal-sub">Загрузи исправленный вариант — работа снова встанет в очередь на оценку.</p>
+      <form id="versionForm" novalidate>
+        <div class="picker" data-field="files" id="vPicker"></div>
+        <div class="field">
+          <textarea id="vNote" name="note" placeholder=" " maxlength="500" aria-describedby="vNote-count vNote-err"></textarea>
+          <label for="vNote">Что изменилось в этой версии</label>
+          <span class="counter" id="vNote-count" aria-live="polite">0 / 500</span>
+          <span class="error-msg" id="vNote-err"></span>
+        </div>
+        <p class="form-error" role="alert"></p>
+        <button class="btn btn-primary btn-block" type="submit"><span>Загрузить версию</span><span class="spinner" aria-hidden="true"></span></button>
+      </form>
+    </div></div>
+  </dialog>
+
+  <!-- Просмотр картинки на весь экран -->
+  <dialog class="lightbox" id="lightbox" aria-label="Просмотр изображения">
+    <button class="lb-btn lb-close" type="button" data-close aria-label="Закрыть">✕</button>
+    <button class="lb-btn lb-prev" type="button" data-lb="-1" aria-label="Предыдущее изображение">‹</button>
+    <figure class="lb-figure">
+      <img id="lbImg" alt="">
+      <figcaption id="lbCap"></figcaption>
+    </figure>
+    <button class="lb-btn lb-next" type="button" data-lb="1" aria-label="Следующее изображение">›</button>
+  </dialog>
+
+  <script type="module" src="assets/js/pages/review.js"></script>
+</body>
+</html>

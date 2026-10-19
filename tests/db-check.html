@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Проверка базы — ndze</title>
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+  <style>
+    :root { --bg: #0f0f0f; --card: #1a1a1a; --line: #2c2c2c; --text: #f2f2f2; --muted: #9a9a9a;
+            --lime: #b6ff3b; --danger: #ff5c5c; --warn: #ffb02e; --info: #4aa8ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+    h1 { margin: 0 0 4px; font-size: 26px; }
+    h1 span { color: var(--lime); }
+    p { color: var(--muted); margin: 6px 0; }
+    code { font: 13px/1.4 ui-monospace, Consolas, monospace; background: #262626; padding: 1px 5px; border-radius: 4px; word-break: break-all; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 16px 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    input[type=text], input[type=email], input[type=password] { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line); background: #111; color: var(--text); font: inherit; }
+    .check { display: flex; gap: 8px; align-items: flex-start; color: var(--text); font-size: 14px; margin-top: 12px; }
+    button { margin-top: 14px; padding: 11px 20px; border: 0; border-radius: 10px; background: var(--lime); color: #0f0f0f; font: 700 15px system-ui, sans-serif; cursor: pointer; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    button:focus-visible, input:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+    .note { border-radius: 10px; padding: 12px 14px; margin: 12px 0; border: 1px solid var(--line); color: var(--text); }
+    .note.info { border-color: #2c4a66; background: #12202c; }
+    .note.warn { border-color: #6b5220; background: #2a210f; }
+    .note.bad { border-color: #6b2626; background: #2a1212; }
+    .note.good { border-color: #4a6b1a; background: #18240c; }
+    body.refused #status { font-size: 17px; font-weight: 600; }
+    #summary { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    td:first-child { color: var(--muted); width: 36px; }
+    td:nth-child(3) { width: 70px; }
+    td:nth-child(4) { color: var(--muted); font-size: 13px; word-break: break-word; }
+    tr.sec td { color: var(--lime); font-weight: 700; padding-top: 18px; border-bottom-color: #3a3a3a; }
+    tr.fail td:nth-child(2) { color: var(--danger); }
+    .pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font: 700 12px/1.6 ui-monospace, Consolas, monospace; }
+    .pill.pass { background: #233a0c; color: var(--lime); }
+    .pill.fail { background: #3d1515; color: var(--danger); }
+    .pill.skip { background: #2a2a2a; color: var(--muted); }
+    .pill.run { background: #12202c; color: var(--info); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Проверка <span>базы</span> Supabase</h1>
+    <p>Автотест прав доступа (RLS), триггеров и хранилища картинок. Работает только с проектом из
+      <code>assets/js/config.js</code> и только с публичным anon-ключом — ключ <b>service_role</b> не нужен и сюда не вводится.</p>
+
+    <div id="status" class="note info">Загрузка…</div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label for="emailTpl">Шаблон email тестовых аккаунтов ({id} заменится на уникальный код)</label>
+          <input id="emailTpl" type="text" value="dbcheck+{id}@example.com" autocomplete="off" spellcheck="false">
+        </div>
+        <div>
+          <label for="adminEmail">Email админа — необязательно, для проверок админа</label>
+          <input id="adminEmail" type="email" autocomplete="off" placeholder="пусто — пропустить">
+        </div>
+        <div>
+          <label for="adminPassword">Пароль админа (не сохраняется)</label>
+          <input id="adminPassword" type="password" autocomplete="off" placeholder="пусто — пропустить">
+        </div>
+      </div>
+      <label class="check"><input id="discordNicks" type="checkbox" checked>
+        Проверить генерацию ника как при входе через Discord (создаст ещё 2 тестовых аккаунта)</label>
+      <p>Перед запуском: в Supabase выключи <b>Authentication → Sign In / Providers → Email → Confirm email</b>
+        (иначе тестовые аккаунты не смогут войти) и включи обратно после проверки, если он тебе нужен.
+        Если ты вошёл на сайте на <code>localhost</code> в этом браузере — проверка выйдет из аккаунта.</p>
+      <button id="run" type="button" disabled>Запустить проверку</button>
+    </div>
+
+    <div id="summary" aria-live="polite"></div>
+    <div id="notes"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Проверка</th><th>Итог</th><th>Подробности</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </main>
+  <script type="module" src="db-check.js"></script>
+</body>
+</html>

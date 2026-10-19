@@ -1,0 +1,9 @@
+# Секреты и локальные файлы — никогда в репозиторий
+.env
+.env.*
+*.key
+*.pem
+id_*
+Thumbs.db
+desktop.ini
+.vscode/

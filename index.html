@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ndze — код, стримы и задания</title>
+  <meta name="description" content="ndze: проекты на GitHub, стримы на Twitch, видео на YouTube, оценка работ и задания на стрим в Minecraft, CS2 и GTA 5 RP.">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/repo-card.css">
+  <link rel="stylesheet" href="assets/css/home.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main">
+    <section class="hero" aria-labelledby="heroTitle">
+      <p class="hero-bgword" aria-hidden="true">NDZE</p>
+
+      <a class="float-card fc-twitch glass" data-depth="18" id="fcTwitch" href="#stream">
+        <span class="badge live">LIVE</span>
+        <strong>twitch.tv/ndze_one</strong>
+        <span class="faint">Стримы Пн · Ср · Пт</span>
+      </a>
+      <a class="float-card fc-github glass" data-depth="-14" href="repos.html">
+        <span class="fc-num" id="fcRepos">—</span>
+        <strong>репозиториев</strong>
+        <span class="faint">на GitHub ↗</span>
+      </a>
+      <a class="float-card fc-tasks glass" data-depth="22" href="tasks.html">
+        <strong>Задание на стрим</strong>
+        <span class="fc-games"><span>MC</span><span>CS2</span><span>GTA RP</span></span>
+      </a>
+
+      <figure class="spidey" id="spidey" role="button" tabindex="0" aria-pressed="false"
+              aria-label="Человек-паук. Наведи курсор, чтобы приоткрыть маску, или нажми, чтобы снять её">
+        <figcaption class="spidey-caption" id="spideyCaption"></figcaption>
+      </figure>
+
+      <div class="hero-text">
+        <p class="eyebrow"><span class="pulse-dot"></span><span id="heroRole"></span></p>
+        <h1 class="hero-title" id="heroTitle"><span id="heroName"></span><span class="caret" aria-hidden="true">_</span></h1>
+        <p class="tagline" id="heroTagline"></p>
+        <div class="cta">
+          <a class="btn btn-primary magnetic" href="review.html">Прислать работу <span aria-hidden="true">↗</span></a>
+          <a class="btn btn-ghost magnetic" href="tasks.html">Задание на стрим</a>
+          <a class="btn btn-ghost magnetic" id="twitchBtn" href="#stream"><span class="live-dot"></span>Twitch</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="reveal" id="about" aria-labelledby="aboutTitle">
+      <div class="section-head"><span class="section-index">00</span><h2 id="aboutTitle">Обо мне</h2></div>
+      <p class="about-text" id="about-text"></p>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="reveal" id="projects" aria-labelledby="projectsTitle">
+      <div class="section-head">
+        <span class="section-index">01</span><h2 id="projectsTitle">Проекты</h2><span class="spacer"></span>
+        <a class="btn btn-ghost btn-sm magnetic" href="repos.html">Все репозитории →</a>
+      </div>
+      <div class="repo-grid" id="repoGrid">
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+      </div>
+    </section>
+
+    <section class="reveal" id="stream" aria-labelledby="streamTitle">
+      <div class="section-head">
+        <span class="section-index">02</span><h2 id="streamTitle">Стримы</h2><span class="live-dot"></span><span class="spacer"></span>
+        <a class="btn btn-ghost btn-sm magnetic" id="twitchOpen" target="_blank" rel="noopener">Открыть Twitch ↗</a>
+      </div>
+      <p class="muted schedule" id="schedule"></p>
+      <div class="stream-wrap" id="streamWrap">
+        <div class="frame player" id="player"></div>
+        <div class="frame chat" id="chat"></div>
+      </div>
+    </section>
+
+    <section class="reveal" id="youtube" aria-labelledby="ytTitle">
+      <div class="section-head">
+        <span class="section-index">03</span><h2 id="ytTitle">YouTube</h2><span class="spacer"></span>
+        <a class="btn btn-ghost btn-sm magnetic" id="ytOpen" target="_blank" rel="noopener">Канал ↗</a>
+      </div>
+      <div class="yt-wrap" id="ytWrap"></div>
+    </section>
+
+    <section class="reveal" id="community" aria-labelledby="communityTitle">
+      <div class="section-head"><span class="section-index">04</span><h2 id="communityTitle">Для зрителей</h2></div>
+      <div class="community">
+        <a class="card community-card glass" href="review.html">
+          <span class="cc-kicker">Оценка работ</span>
+          <h3>Пришли свою работу — разберу на стриме</h3>
+          <ol class="steps">
+            <li><b>01</b>Отправь арт, дизайн, фото или код</li>
+            <li><b>02</b>Я оценю его в прямом эфире</li>
+            <li><b>03</b>Доработай по советам</li>
+            <li><b>04</b>Доведём до идеала → в галерею</li>
+          </ol>
+          <span class="cc-go">Отправить работу →</span>
+        </a>
+        <a class="card community-card glass" href="tasks.html">
+          <span class="cc-kicker">Задания на стрим</span>
+          <h3>Брось мне челлендж в игре</h3>
+          <div class="game-row">
+            <span class="game-pill mc">Minecraft</span>
+            <span class="game-pill cs">CS2</span>
+            <span class="game-pill gta">GTA 5 RP · NovaRP</span>
+          </div>
+          <p class="muted">Зрители голосуют — самые популярные задания я выполняю в прямом эфире.</p>
+          <span class="cc-go">Предложить задание →</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="reveal" id="contact" aria-labelledby="contactTitle">
+      <div class="section-head"><span class="section-index">05</span><h2 id="contactTitle">Контакты</h2></div>
+      <div class="socials" id="socials"></div>
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/pages/home.js"></script>
+</body>
+</html>
