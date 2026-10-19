@@ -141,6 +141,9 @@ jobs:
             echo "::error::В файлах сайта найден секрет — убери его"; exit 1
           fi
 
+      - name: Версия к скриптам и стилям (сброс кэша браузеров)
+        run: python3 tools/stamp-assets.py "${GITHUB_SHA::10}"
+
       - name: Собрать api/config.php из секретов
         env:
           DB_HOST: ${{ secrets.DB_HOST }}

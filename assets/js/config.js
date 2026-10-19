@@ -19,19 +19,24 @@ export const SITE = {
   socials: [
     { label: "Twitch", url: "https://www.twitch.tv/ndze_one" },
     { label: "YouTube", url: "https://www.youtube.com/@ndzeone" },
-    { label: "Discord", url: "https://discord.gg/fARfeAYWmb" },
     { label: "GitHub", url: "https://github.com/ndzeone" },
     { label: "NovaRP", url: "https://novarp.ru/" },
+  ],
+  // Большие кнопки «Мой Discord» и «Мои проекты» в контактах (иконки — из data/discord/, их кладёт sync-discord.ps1)
+  links: [
+    { kind: "Мой Discord-сервер", label: "RO-OM", url: "https://discord.gg/fARfeAYWmb", icon: "data/discord/1341029477471359077-icon.webp", accent: "#8b6cff" },
+    { kind: "Мой проект с другом", label: "MythosMC", url: "https://discord.gg/9UgDQJJFyb", icon: "data/discord/1524885681053110392-icon.webp", accent: "#2fd673" },
   ],
 
   // Discord-серверы на главной. Название, иконку и число участников tools/sync-discord.ps1
   // при каждом деплое кладёт в data/discord.json; онлайн браузер уточняет у Discord вживую.
-  // accent — цвет неоновой подсветки карточки.
+  // accent — цвет неоновой подсветки карточки, banner — свой баннер (рисует tools/make-banners.php).
   discord: [
     {
       invite: "fARfeAYWmb",
       kind: "Сервер для общения",
       accent: "#8b6cff",
+      banner: "assets/img/banners/ro-om.svg",
       tagline: "Мой сервер: общаемся, сидим в войсах, обсуждаем стримы и ловим анонсы первыми.",
       perks: ["Анонсы стримов", "Войсы и чат", "Ивенты"],
     },
@@ -39,6 +44,7 @@ export const SITE = {
       invite: "9UgDQJJFyb",
       kind: "Проект с другом",
       accent: "#2fd673",
+      banner: "assets/img/banners/mythosmc.svg",
       tagline: "MythosMC — наш с другом Minecraft-сервер: выживание и RPG. Заходи следить за разработкой и играть первым.",
       perks: ["Minecraft", "Survival", "RPG"],
     },

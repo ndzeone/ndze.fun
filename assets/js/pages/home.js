@@ -17,6 +17,13 @@ $("#schedule").textContent = SITE.schedule;
 $("#twitchOpen").href = SITE.twitch.url;
 $("#ytOpen").href = SITE.youtube.url;
 $("#fcTwitch strong").textContent = SITE.twitch.url.replace(/^https?:\/\/(www\.)?/, "");
+$("#contactLinks").innerHTML = (SITE.links || [])
+  .map((l) => `<a class="link-card glass magnetic" style="--accent:${esc(l.accent || "#5865f2")}" href="${esc(l.url)}" target="_blank" rel="noopener">
+    <span class="lc-icon">${l.icon ? `<img src="${esc(l.icon)}" alt="" width="56" height="56" loading="lazy" decoding="async">` : esc(initial(l.label))}</span>
+    <span class="lc-text"><small>${esc(l.kind)}</small><b>${esc(l.label)}</b></span>
+    <span class="lc-go">${DISCORD_SVG}<span>Зайти</span><span aria-hidden="true">↗</span></span>
+  </a>`)
+  .join("");
 $("#socials").innerHTML = SITE.socials
   .map((s) => `<a class="pill magnetic" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}<span aria-hidden="true">↗</span></a>`)
   .join("");
@@ -143,8 +150,11 @@ function discordCardHTML(cfg, info) {
   const link = `https://discord.gg/${cfg.invite}`;
   // описание из Discord показываем цитатой, если это не просто «Название | жанр»
   const desc = info?.description && !info.description.toLowerCase().includes(name.toLowerCase()) ? info.description : "";
+  const cover = cfg.banner
+    ? `<div class="dc-cover has-banner" aria-hidden="true"><img src="${esc(new URL(cfg.banner, DATA_ROOT).href)}" alt="" loading="lazy" decoding="async"></div>`
+    : `<div class="dc-cover" aria-hidden="true">${icon ? `<img src="${esc(icon)}" alt="" loading="lazy" decoding="async">` : ""}</div>`;
   return `<article class="dc-card glass" style="--accent:${esc(cfg.accent || "#5865f2")}" data-invite="${esc(cfg.invite)}">
-    ${icon ? `<div class="dc-cover" aria-hidden="true"><img src="${esc(icon)}" alt="" loading="lazy" decoding="async"></div>` : '<div class="dc-cover" aria-hidden="true"></div>'}
+    ${cover}
     <div class="dc-head">
       <span class="dc-icon">${icon ? `<img src="${esc(icon)}" alt="" width="84" height="84" loading="lazy" decoding="async">` : esc(initial(name))}</span>
       <div class="dc-title">

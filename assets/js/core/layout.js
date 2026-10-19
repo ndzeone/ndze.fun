@@ -296,7 +296,7 @@ function mountAuth() {
 
 /* ---------- Подвал ---------- */
 function footerHTML() {
-  const links = SITE.socials.map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>`).join("");
+  const links = [...SITE.socials, ...(SITE.links || [])].map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>`).join("");
   return `<span>© ${new Date().getFullYear()} ${esc(SITE.nick)} · сделано с паутиной 🕸</span><nav class="footer-links" aria-label="Соцсети">${links}</nav>`;
 }
 
