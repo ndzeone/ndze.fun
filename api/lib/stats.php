@@ -26,6 +26,7 @@ function route_health(): array
 {
     $db = false;
     $schema = false;
+    $dbError = config() === null ? 'not_configured' : null;
     if (config() !== null) {
         try {
             $pdo = db(); // заодно применяет миграцию
@@ -33,11 +34,23 @@ function route_health(): array
             $schema = schema_version($pdo) >= NDZE_SCHEMA_VERSION;
         } catch (Throwable $e) {
             error_log('[ndze] health: база недоступна: ' . $e->getMessage());
+            // Только категория ошибки — без текста, логинов и путей
+            $code = $e instanceof PDOException ? (int) ($e->errorInfo[1] ?? 0) : 0;
+            if ($code === 0 && $e instanceof PDOException && preg_match('/\[(\d{4})\]/', $e->getMessage(), $m)) $code = (int) $m[1];
+            $dbError = [
+                1045 => 'access_denied',     // неверный пользователь или пароль
+                1044 => 'no_db_access',      // у пользователя нет прав на эту базу
+                1049 => 'unknown_database',  // нет базы с таким именем
+                2002 => 'cannot_connect',    // неверный хост
+                2005 => 'cannot_connect',
+                2006 => 'cannot_connect',
+            ][$code] ?? ($db ? 'migration_failed' : 'other');
         }
     }
     return [
         'php' => PHP_VERSION,
         'db' => $db,
+        'dbError' => $dbError,
         'schema' => $schema,
         'storage' => storage_dir('uploads') !== null,
         'gd' => function_exists('imagecreatetruecolor'),
