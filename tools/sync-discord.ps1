@@ -63,7 +63,8 @@ foreach ($code in $codes) {
 
   $icon = $null
   if ($g.icon) {
-    $file = "$($g.id)-icon.webp"
+    # хеш иконки в имени файла: новая иконка — новый адрес, браузеры не покажут старую из кэша
+    $file = "$($g.id)-$($g.icon).webp"
     $icon = Get-Image "https://cdn.discordapp.com/icons/$($g.id)/$($g.icon).webp?size=256" $file
     if ($icon) { [void]$keep.Add($file) }
   }

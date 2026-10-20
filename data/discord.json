@@ -1,22 +1,22 @@
 {
-    "generatedAt":  "2026-10-19T18:08:11Z",
+    "generatedAt":  "2026-10-20T14:15:01Z",
     "servers":  {
                     "fARfeAYWmb":  {
                                        "id":  "1341029477471359077",
-                                       "name":  "RO-OM",
-                                       "description":  "Шёпотом, говорю вам тут что-то странное будет открывать ;)",
-                                       "icon":  "data/discord/1341029477471359077-icon.webp",
+                                       "name":  "mc.penta.org | SMP ...",
+                                       "description":  "",
+                                       "icon":  "data/discord/1341029477471359077-e11d24091194ae0c69dbdec0dc1f32b6.webp",
                                        "members":  79,
-                                       "online":  20,
+                                       "online":  19,
                                        "channel":  "чат"
                                    },
                     "9UgDQJJFyb":  {
                                        "id":  "1524885681053110392",
                                        "name":  "MythosMC",
                                        "description":  "MythosMC | Minecraft Survival \u0026 RPG",
-                                       "icon":  "data/discord/1524885681053110392-icon.webp",
+                                       "icon":  "data/discord/1524885681053110392-b579b070d8e755c4cb5f09285a66727e.webp",
                                        "members":  6,
-                                       "online":  6,
+                                       "online":  3,
                                        "channel":  "💬｜общение"
                                    }
                 }

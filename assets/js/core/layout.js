@@ -16,7 +16,8 @@ import { setupModal, shake } from "./modal.js";
 
 export const NAV = [
   { id: "home", href: "index.html", label: "Главная" },
-  { id: "repos", href: "repos.html", label: "Проекты" },
+  { id: "projects", href: "projects.html", label: "Проекты" },
+  { id: "repos", href: "repos.html", label: "GitHub" },
   { id: "review", href: "review.html", label: "Оценка работ" },
   { id: "tasks", href: "tasks.html", label: "Задания" },
   { id: "admin", href: "admin.html", label: "Админка", adminOnly: true },

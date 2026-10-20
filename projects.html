@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Проекты — ndze</title>
+  <meta name="description" content="Проекты ndze: Minecraft-серверы Penta SMP и MythosMC, VPN-клиенты, лаунчеры Minecraft, мессенджер, браузер и другие — свои и совместные.">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/projects.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main">
+    <header class="page-head pj-head">
+      <p class="pj-kicker"><span class="pulse-dot" aria-hidden="true"></span>Что я делаю</p>
+      <h1>Проекты</h1>
+      <p>Мои серверы, приложения и лаунчеры — и проекты, которые веду вместе с друзьями. Код открытых проектов можно смотреть прямо на сайте.</p>
+      <div class="pj-counters" id="pjCounters" aria-live="polite"></div>
+    </header>
+
+    <div class="chips pj-filter" id="pjFilter" role="group" aria-label="Какие проекты показать"></div>
+
+    <div id="pjRoot">
+      <div class="skeleton pj-skel-feature"></div>
+      <div class="pj-grid"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+    </div>
+  </main>
+
+  <script type="module" src="assets/js/pages/projects.js"></script>
+</body>
+</html>

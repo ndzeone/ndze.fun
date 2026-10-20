@@ -202,6 +202,11 @@
 .dc-stat b { font: 700 1.25rem var(--pixel); color: var(--text); font-variant-numeric: tabular-nums; display: inline-block; }
 .dc-stat b.bump { animation: dcBump .6s var(--ease); }
 @keyframes dcBump { 40% { transform: translateY(-4px) scale(1.15); color: var(--lime); } }
+.dc-mc { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: -4px; }
+.mc-state { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .9rem; }
+.mc-state i { width: 10px; height: 10px; border-radius: 2px; background: #80848e; }
+.mc-state.is-on i { background: var(--lime); box-shadow: 0 0 10px var(--lime); animation: pulseLime 2s infinite; }
+.mc-state.is-off i { background: var(--danger); }
 .dc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .dc-actions .btn-discord svg { width: 20px; height: 20px; }
 .dc-copy { font-family: var(--mono); font-weight: 600; font-size: .8rem; }

@@ -8,6 +8,7 @@
 | Файл | id для mountLayout | Что делает | JS / CSS |
 |---|---|---|---|
 | `index.html` | `home` | Главная: герой с Человеком-пауком, проекты, Twitch, YouTube, Discord-серверы | `pages/home.js`, `home.css` |
+| `projects.html` | `projects` | Мои и совместные проекты (список — `SITE.projects` в config.js) | `pages/projects.js`, `projects.css` |
 | `profile.html` | `profile` | Личный кабинет: аватарка, ник, пароль, Discord, мои работы и задания | `pages/profile.js`, `profile.css` |
 | `repos.html` | `repos` | Все репозитории GitHub (открытые + закрытые) | `pages/repos.js`, `repos.css` |
 | `repo.html?name=X&path=Y` | `repos` | Просмотр кода открытого репозитория | `pages/repo.js`, `repo.css` |
