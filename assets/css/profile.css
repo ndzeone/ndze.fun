@@ -152,6 +152,53 @@
 .pf-discord-card .btn-discord svg { width: 18px; height: 18px; }
 .pf-exit { border-color: rgba(255, 93, 93, .2); }
 
+/* ---------- Уровень и опыт ---------- */
+.pf-level { display: flex; align-items: center; gap: 14px; margin-top: 16px; max-width: 520px; }
+.pf-lv {
+  flex: none; padding: 8px 12px; border-radius: 12px; background: var(--lime); color: var(--black);
+  font: 700 1.05rem var(--pixel); box-shadow: 0 0 24px rgba(93, 214, 44, .45);
+}
+.pf-xp { flex: 1; display: grid; gap: 5px; min-width: 0; }
+.pf-xp-bar { height: 12px; border-radius: 4px; background: rgba(248, 248, 248, .08); overflow: hidden; border: 1px solid var(--line); }
+.pf-xp-bar i {
+  display: block; height: 100%; border-radius: 3px;
+  background: repeating-linear-gradient(90deg, var(--lime) 0 10px, #4cbb20 10px 12px); box-shadow: 0 0 14px rgba(93, 214, 44, .6);
+  animation: pfXp 1.2s var(--ease) both;
+}
+@keyframes pfXp { from { width: 0 !important; } }
+.pf-xp small { color: var(--faint); font-size: .8rem; }
+.pf-points { flex: none; padding: 7px 12px; border-radius: var(--pill); background: rgba(255, 209, 102, .12); border: 1px solid rgba(255, 209, 102, .4); color: #ffd166; font: 700 .9rem var(--pixel); }
+.pf-points:hover { background: rgba(255, 209, 102, .2); }
+
+/* ---------- Достижения ---------- */
+.pf-badges-intro { margin-bottom: 18px; }
+.pf-link { color: var(--lime); text-decoration: underline; text-underline-offset: 3px; }
+.pf-badge-grid { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.pf-badge { display: grid; justify-items: start; gap: 6px; padding: 16px; border-radius: var(--r-sm); opacity: .6; filter: grayscale(.8); transition: opacity .3s, filter .3s, transform .35s var(--ease); }
+.pf-badge.is-earned { opacity: 1; filter: none; border-color: rgba(93, 214, 44, .45); }
+.pf-badge.is-earned:hover { transform: translateY(-4px); }
+.pf-badge-icon {
+  width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; font-size: 1.7rem;
+  background: rgba(248, 248, 248, .06); border: 1px solid var(--line);
+}
+.pf-badge.is-earned .pf-badge-icon { background: rgba(93, 214, 44, .14); border-color: rgba(93, 214, 44, .5); box-shadow: 0 0 20px rgba(93, 214, 44, .35); }
+.pf-badge b { font: 700 1rem var(--pixel); text-transform: uppercase; }
+.pf-badge small { color: var(--muted); font-size: .82rem; line-height: 1.35; }
+.pf-badge-prog { width: 100%; height: 6px; border-radius: 3px; background: rgba(248, 248, 248, .08); overflow: hidden; }
+.pf-badge-prog i { display: block; height: 100%; background: var(--lime); }
+
+/* ---------- Minecraft ---------- */
+.pf-mc { grid-column: 1 / -1; }
+.pf-mc-icon { font-size: 1.2rem; }
+.pf-mc-row { display: flex; align-items: flex-start; gap: 14px; }
+.pf-mc-row .field { flex: 1; }
+.pf-mc-head { flex: none; width: 56px; height: 56px; border-radius: 12px; image-rendering: pixelated; background: #202020; box-shadow: 0 0 0 2px rgba(93, 214, 44, .4); }
+.pf-mc-head.is-empty { display: grid; place-items: center; color: var(--faint); font: 700 1.4rem var(--pixel); }
+.pf-mc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf-wl { display: grid; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.pf-wl ul { list-style: none; padding: 0; display: grid; gap: 6px; font-size: .88rem; color: var(--muted); }
+.pf-wl .btn { justify-self: start; }
+
 @keyframes pfIn { from { opacity: 0; transform: translateY(18px); } }
 
 /* ---------- Адаптив ---------- */
@@ -162,11 +209,13 @@
   #profileRoot { padding-top: 28px; }
   .pf-hero { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 28px 18px; }
   .pf-badges, .pf-quick { justify-content: center; }
+  .pf-level { margin-inline: auto; text-align: left; }
   .pf-eyebrow { justify-content: center; }
   .pf-stats { grid-template-columns: repeat(2, 1fr); }
   .pf-settings { grid-template-columns: 1fr; }
   .pf-tabs { display: flex; }
-  .pf-tabs button { flex: 1; justify-content: center; gap: 6px; padding: 10px 4px; font-size: .82rem; white-space: nowrap; }
+  .pf-tabs { flex-wrap: wrap; border-radius: var(--r-sm); }
+  .pf-tabs button { flex: 1 1 45%; justify-content: center; gap: 6px; padding: 10px 4px; font-size: .82rem; white-space: nowrap; }
   .tab-n { min-width: 18px; padding: 0 4px; }
   .pf-task { grid-template-columns: 44px 1fr; }
   .pf-task-game { width: 44px; height: 44px; }

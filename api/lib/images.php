@@ -214,12 +214,15 @@ function route_image(): void
 {
     $id = norm_uuid(query_str('id'));
     $row = $id ? q_one(
-        'SELECT i.file_name, i.mime, s.user_id, s.status FROM submission_images i JOIN submissions s ON s.id = i.submission_id WHERE i.id = ?',
+        'SELECT i.file_name, i.mime, s.id AS sub_id, s.user_id, s.status FROM submission_images i JOIN submissions s ON s.id = i.submission_id WHERE i.id = ?',
         [$id]
     ) : null;
     $me = current_user();
     session_release();
-    if (!$row || !can_see_submission($me, $row['user_id'], $row['status'])
+    // оверлей OBS (без входа) по ключу из пульта видит только картинку последней присланной работы — ту, что в оверлее
+    $byKey = $row && query_str('key') !== '' && overlay_key_ok(query_str('key'))
+        && ($row['sub_id'] === (q_one('SELECT id FROM submissions ORDER BY created_at DESC LIMIT 1')['id'] ?? null));
+    if (!$row || (!$byKey && !can_see_submission($me, $row['user_id'], $row['status']))
         || !preg_match('/^[0-9a-f-]{36}\.(jpg|png|webp|gif)$/', $row['file_name'])) {
         throw new ApiError('not_found', 'Картинка не найдена');
     }

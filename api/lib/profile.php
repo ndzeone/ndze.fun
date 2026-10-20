@@ -71,7 +71,7 @@ function avatar_set(string $userId, ?string $file, string $source, ?string $disc
     $pdo->beginTransaction();
     try {
         $old = q_one('SELECT avatar_file, avatar_source FROM user_profiles WHERE user_id = ? FOR UPDATE', [$userId]);
-        if ($fromDiscord && in_array($old['avatar_source'] ?? null, ['upload', 'removed'], true)) {
+        if ($fromDiscord && in_array($old['avatar_source'] ?? null, ['upload', 'removed', 'mc'], true)) {
             $pdo->rollBack();
             avatar_file_delete($file);
             return false;
@@ -105,7 +105,7 @@ function discord_sync_avatar(string $userId, array $p): void
         $hash = $p['avatar'] ?? null;
         if (!is_string($hash) || !preg_match('/^(a_)?[0-9a-f]{32}$/', $hash) || !function_exists('imagecreatefromstring')) return;
         $row = q_one('SELECT avatar_source, discord_avatar FROM user_profiles WHERE user_id = ?', [$userId]);
-        if ($row && in_array($row['avatar_source'], ['upload', 'removed'], true)) return;
+        if ($row && in_array($row['avatar_source'], ['upload', 'removed', 'mc'], true)) return;
         // эту аватарку уже скачивали (или пробовали — CDN Discord с хостинга может быть недоступен): не ждём снова
         if ($row && $row['discord_avatar'] === $hash) return;
         profile_ensure($userId);
@@ -179,6 +179,10 @@ function profile_view(array $me): array
             'tasksDone' => (int) $t['done'],
             'votesReceived' => (int) $v['n'],
         ],
+        'progress' => user_progress($me['id']),
+        'points' => points_balance($me['id']),
+        'minecraft' => minecraft_of($me['id']),
+        'whitelist' => whitelist_of($me['id']),
     ];
 }
 

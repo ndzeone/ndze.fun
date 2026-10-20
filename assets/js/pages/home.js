@@ -1,6 +1,7 @@
 import { SITE } from "../config.js";
 import { mountLayout, DISCORD_SVG } from "../core/layout.js";
-import { $, $$, esc, lerp, motion, finePointer, toast, initial } from "../core/util.js";
+import { $, $$, esc, lerp, motion, finePointer, toast, initial, avatarHTML, plural } from "../core/util.js";
+import { api } from "../data/api.js";
 import { ROOT, people, loadDiscord, iconUrl, liveInvite, minecraftStatus, showMinecraft, setCount } from "../core/community.js";
 import { mouse, onFrame, initReveal, initMagnetic, initTilt } from "../core/fx.js";
 import { loadRepos } from "../data/github.js";
@@ -23,7 +24,9 @@ $("#socials").innerHTML = SITE.socials
   .join("");
 
 /* ---------- Человек-паук ---------- */
-mountSpidey($("#spidey"), { caption: $("#spideyCaption") });
+const spidey = mountSpidey($("#spidey"), { caption: $("#spideyCaption") });
+// секретный код (assets/js/core/webshoot.js) снимает маску полностью
+window.addEventListener("ndze:konami", () => spidey.toggle(true));
 
 /* ---------- «Расшифровка» ника ---------- */
 function scramble(el) {
@@ -197,6 +200,31 @@ async function renderDiscord(data) {
   for (const box of $$("[data-ip]", grid)) minecraftStatus(box.dataset.ip).then((st) => showMinecraft(box, st));
 }
 
+/* ---------- Зал славы: лидеры по опыту + работа недели из битвы ---------- */
+async function renderFame() {
+  const grid = $("#fame-grid");
+  const [list, battle] = await Promise.all([api.leaderboard().catch(() => []), api.battleTop().catch(() => ({ week: null }))]);
+  const week = battle.week;
+  const row = (r, i) => `<li class="fame-row"><span class="fame-place">${i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>
+    ${avatarHTML(r.user.nick, r.user.avatarUrl, { size: "sm" })}
+    <span class="fame-name"><b>${esc(r.user.nick)}</b><small>ур. ${r.level} · ${esc(r.title)}</small></span>
+    <span class="fame-xp">${r.xp} XP</span></li>`;
+  grid.innerHTML = `
+    <article class="card glass fame-card">
+      <span class="cc-kicker">Лидеры зрителей</span>
+      ${list.length ? `<ol class="fame-list">${list.slice(0, 5).map(row).join("")}</ol>`
+        : `<p class="muted">Таблица пуста — присылай работы, предлагай задания и голосуй, чтобы попасть сюда первым.</p>`}
+      <a class="cc-go" href="play.html#leaders">Вся таблица →</a>
+    </article>
+    <article class="card glass fame-card fame-week">
+      <span class="cc-kicker">👑 Работа недели</span>
+      ${week ? `${week.imageUrl ? `<img src="${esc(week.imageUrl)}" alt="" loading="lazy" decoding="async">` : ""}
+        <h3>${esc(week.title)}</h3><p class="muted">@${esc(week.authorNick)} · ${week.weekWins} ${plural(week.weekWins, ["победа", "победы", "побед"])} в битве за неделю</p>`
+        : `<h3>Кто победит?</h3><p class="muted">Две работы из галереи — выбирай лучшую. Самая побеждающая за неделю попадает сюда.</p>`}
+      <a class="cc-go" href="play.html#battle">В битву работ →</a>
+    </article>`;
+}
+
 /* ---------- Большие кнопки в контактах ---------- */
 function renderContactLinks(data) {
   $("#contactLinks").innerHTML = (SITE.links || []).map((l) => {
@@ -223,6 +251,7 @@ $("#dcGrid").addEventListener("click", async (e) => {
 
 renderTwitch();
 renderYouTube();
+renderFame();
 const discordData = await loadDiscord();
 await renderDiscord(discordData);
 renderContactLinks(discordData);

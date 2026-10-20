@@ -889,6 +889,181 @@ $r = req($A, 'POST', 'me/discord/unlink');
 check('discord unlink when not linked → profile, discordLinked false', isOk($r) && (data($r)['discordLinked'] ?? null) === false, desc($r));
 reset_rl();
 
+/* ============================== Движ: эфир, пульт, колесо, оверлей ============================== */
+section('fun: live, stream, wheel, overlay');
+reset_rl();
+$r = req($guest, 'GET', 'live');
+check('GET live → {live:bool, channel}', isOk($r) && is_bool(data($r)['live'] ?? null) && (data($r)['channel'] ?? '') !== '', desc($r));
+$r = req($guest, 'GET', 'leaderboard');
+check('GET leaderboard → array', isOk($r) && is_array(data($r)), desc($r));
+expectErr('stream as guest → 401', req($guest, 'GET', 'stream'), 401, 'auth_required');
+expectErr('stream as user → 403', req($A, 'GET', 'stream'), 403, 'forbidden');
+$r = req($admin, 'GET', 'stream');
+$key = (string) (data($r)['overlayKey'] ?? '');
+check('stream as admin → overlayKey (32 hex) + candidates', isOk($r) && preg_match('/^[0-9a-f]{32}$/', $key) && is_array(data($r)['candidates'] ?? null), desc($r));
+expectErr('overlay without key → 403', req($guest, 'GET', 'overlay'), 403, 'forbidden');
+expectErr('overlay with wrong key → 403', req($guest, 'GET', 'overlay', ['key' => str_repeat('a', 32)]), 403, 'forbidden');
+expectErr('wheel/spin as user → 403', req($A, 'POST', 'wheel/spin'), 403, 'forbidden');
+$r = req($B, 'POST', 'tasks', [], ['game' => 'minecraft', 'title' => "Колесо $RUN", 'description' => '', 'difficulty' => 2]);
+$wheelTask = data($r)['id'] ?? '';
+expectOk('admin accepts task for the wheel', req($admin, 'POST', 'task/update', [], ['id' => $wheelTask, 'status' => 'accepted']));
+$r = req($admin, 'POST', 'wheel/spin');
+$spin = data($r) ?? [];
+check('wheel/spin → winner among candidates', isOk($r) && isset($spin['candidates'][$spin['winnerIndex'] ?? -1]) && $spin['candidates'][$spin['winnerIndex']]['id'] === ($spin['winnerId'] ?? null), desc($r));
+$r = req($guest, 'GET', 'tasks');
+$won = findById(data($r), (string) ($spin['winnerId'] ?? ''));
+check('wheel winner task → status live', ($won['status'] ?? '') === 'live', short(json_encode($won)));
+$r = req($guest, 'GET', 'overlay', ['key' => $key]);
+$ov = data($r) ?? [];
+check('overlay with key → currentTask = winner, wheel, topTasks, live', isOk($r) && ($ov['currentTask']['id'] ?? null) === ($spin['winnerId'] ?? '') && ($ov['wheel']['id'] ?? null) === ($spin['id'] ?? '') && is_array($ov['topTasks'] ?? null) && isset($ov['live']), desc($r));
+if (!empty($ov['lastWork']['imageUrl'])) {
+    $img = getImage($guest, $ov['lastWork']['imageUrl']);
+    check('overlay image with key → 200 for guest', $img['status'] === 200, "HTTP {$img['status']}");
+    $noKey = preg_replace('/&key=[0-9a-f]+/', '', $ov['lastWork']['imageUrl']);
+    if (($ov['lastWork']['status'] ?? '') !== 'ideal') { $img = getImage($guest, $noKey); check('same private image without key → 404', $img['status'] === 404, "HTTP {$img['status']}"); }
+}
+$r = req($admin, 'POST', 'stream', [], ['currentTaskId' => null]);
+check('stream: clear current task', isOk($r), desc($r));
+$r = req($admin, 'POST', 'stream', [], ['regenerateKey' => true]);
+check('stream: regenerate key → new key', isOk($r) && (data($r)['overlayKey'] ?? '') !== $key, desc($r));
+expectErr('old overlay key → 403', req($guest, 'GET', 'overlay', ['key' => $key]), 403, 'forbidden');
+
+/* ---------- Битва работ ---------- */
+section('fun: battle');
+$bIds = [];
+foreach ([1, 2] as $i) {
+    $r = req($A, 'POST', 'submissions', [], form(['title' => "Битва $i $RUN", 'category' => 'art'], [cf(gd_png(80, 60, "$TMP/battle$i.png"), 'image/png')]), ['multipart' => true]);
+    $id = data($r)['id'] ?? '';
+    $bIds[] = $id;
+    $LEDGER['subs'][$id] = 'ideal';
+    req($admin, 'POST', 'submission/review', [], ['id' => $id, 'status' => 'ideal']);
+}
+$r = req($guest, 'GET', 'battle/pair');
+check('battle/pair → two different ideal works', isOk($r) && count(data($r)['pair'] ?? []) === 2 && data($r)['pair'][0]['id'] !== data($r)['pair'][1]['id'], desc($r));
+expectErr('battle vote as guest → 401', req($guest, 'POST', 'battle/vote', [], ['winnerId' => $bIds[0], 'loserId' => $bIds[1]]), 401);
+expectErr('battle vote same work twice → 400', req($B, 'POST', 'battle/vote', [], ['winnerId' => $bIds[0], 'loserId' => $bIds[0]]), 400, 'validation');
+expectErr('battle vote for a pair that was not served → 400', req($C, 'POST', 'battle/vote', [], ['winnerId' => $bIds[0], 'loserId' => $bIds[1]]), 400, 'validation');
+// чтобы пара точно была нашей, «прокручиваем» выдачу, пока B не получит обе свежие работы (в базе могут быть и другие)
+$served = null;
+for ($i = 0; $i < 60 && !$served; $i++) {
+    $pp = data(req($B, 'GET', 'battle/pair'))['pair'] ?? [];
+    if (count($pp) === 2 && !array_diff(array_column($pp, 'id'), $bIds)) $served = $pp;
+}
+check('B gets served our pair', $served !== null, 'pair never served');
+$winId = $served[0]['id'] ?? $bIds[0];
+$loseId = $served[1]['id'] ?? $bIds[1];
+$r = req($B, 'POST', 'battle/vote', [], ['winnerId' => $winId, 'loserId' => $loseId]);
+check('battle vote → winner rating up, loser down', isOk($r) && data($r)['winner']['rating'] > 1000 && data($r)['loser']['rating'] < 1000, desc($r));
+$bIds = [$winId, $loseId];
+expectErr('battle vote same pair again (reversed) → 400', req($B, 'POST', 'battle/vote', [], ['winnerId' => $bIds[1], 'loserId' => $bIds[0]]), 400, 'validation');
+$r = req($A, 'GET', 'battle/pair');
+$own = array_intersect(array_column(data($r)['pair'] ?? [], 'id'), $bIds);
+check('author is never served own works', isOk($r) && !$own, desc($r));
+$r = req($guest, 'GET', 'battle/top');
+check('battle/top → week + top with our winner', isOk($r) && in_array($bIds[0], ids(data($r)['top'] ?? []), true) && is_array(data($r)['week'] ?? null), desc($r));
+
+/* ---------- Ставки ---------- */
+section('fun: predictions');
+expectErr('create prediction as user → 403', req($A, 'POST', 'prediction/create', [], ['question' => 'Q?', 'options' => ['a', 'b']]), 403);
+expectErr('create prediction: one option → 400', req($admin, 'POST', 'prediction/create', [], ['question' => 'Вопрос?', 'options' => ['Да']]), 400, 'validation', ['options']);
+$r = req($admin, 'POST', 'prediction/create', [], ['question' => "Пройдёт ли данж $RUN?", 'options' => ['Да', 'Нет']]);
+$pid = data($r)['id'] ?? '';
+check('create prediction → open with 2 options', isOk($r) && (data($r)['status'] ?? '') === 'open' && count(data($r)['options'] ?? []) === 2, desc($r));
+$balB0 = data(req($B, 'GET', 'predictions'))['balance'] ?? null;
+$balC0 = data(req($C, 'GET', 'predictions'))['balance'] ?? null;
+check('logged-in user has a balance', is_int($balB0) && is_int($balC0), var_export([$balB0, $balC0], true));
+expectErr('bet as guest → 401', req($guest, 'POST', 'prediction/bet', [], ['id' => $pid, 'option' => 0, 'amount' => 100]), 401);
+expectErr('bet below minimum → 400', req($B, 'POST', 'prediction/bet', [], ['id' => $pid, 'option' => 0, 'amount' => 5]), 400, 'validation', ['amount']);
+expectErr('bet more than balance → 400', req($B, 'POST', 'prediction/bet', [], ['id' => $pid, 'option' => 0, 'amount' => (int) $balB0 + 1]), 400, 'validation', ['amount']);
+expectErr('bet on missing option → 400', req($B, 'POST', 'prediction/bet', [], ['id' => $pid, 'option' => 5, 'amount' => 100]), 400, 'validation');
+$r = req($B, 'POST', 'prediction/bet', [], ['id' => $pid, 'option' => 0, 'amount' => 100]);
+check('B bets 100 on option 0 → balance −100', isOk($r) && data($r)['balance'] === $balB0 - 100 && (data($r)['item']['myBet']['amount'] ?? 0) === 100, desc($r));
+expectErr('second bet on same question → 400', req($B, 'POST', 'prediction/bet', [], ['id' => $pid, 'option' => 1, 'amount' => 10]), 400, 'validation');
+expectOk('C bets 300 on option 1', req($C, 'POST', 'prediction/bet', [], ['id' => $pid, 'option' => 1, 'amount' => 300]));
+expectOk('admin locks bets', req($admin, 'POST', 'prediction/update', [], ['id' => $pid, 'action' => 'lock']));
+expectErr('bet after lock → 400', req($A, 'POST', 'prediction/bet', [], ['id' => $pid, 'option' => 0, 'amount' => 10]), 400, 'validation');
+$r = req($admin, 'POST', 'prediction/update', [], ['id' => $pid, 'action' => 'resolve', 'option' => 0]);
+check('resolve option 0 → resolved, result 0', isOk($r) && (data($r)['status'] ?? '') === 'resolved' && (data($r)['result'] ?? -1) === 0, desc($r));
+$balB = data(req($B, 'GET', 'predictions'))['balance'] ?? null;
+$balC = data(req($C, 'GET', 'predictions'))['balance'] ?? null;
+check('winner B takes the whole pool (+300)', $balB === $balB0 + 300, var_export([$balB0, $balB], true));
+check('loser C lost 300', $balC === $balC0 - 300, var_export([$balC0, $balC], true));
+expectErr('update resolved prediction → 400', req($admin, 'POST', 'prediction/update', [], ['id' => $pid, 'action' => 'cancel']), 400, 'validation');
+$r = req($admin, 'POST', 'prediction/create', [], ['question' => "Отмена $RUN?", 'options' => ['A', 'B', 'C']]);
+$pid2 = data($r)['id'] ?? '';
+req($C, 'POST', 'prediction/bet', [], ['id' => $pid2, 'option' => 2, 'amount' => 50]);
+expectOk('cancel prediction', req($admin, 'POST', 'prediction/update', [], ['id' => $pid2, 'action' => 'cancel']));
+check('cancel refunds the bet', (data(req($C, 'GET', 'predictions'))['balance'] ?? null) === $balC, 'balance changed after cancel');
+
+/* ---------- Холст ---------- */
+section('fun: canvas');
+$r = req($guest, 'GET', 'canvas');
+$cv = data($r) ?? [];
+check('GET canvas → 64×64 data, 16 colors', isOk($r) && strlen((string) ($cv['data'] ?? '')) === 4096 && count($cv['palette'] ?? []) === 16 && $cv['wait'] === null, desc($r));
+$v0 = (int) ($cv['version'] ?? 0);
+$e0 = (int) ($cv['epoch'] ?? 0);
+expectErr('place as guest → 401', req($guest, 'POST', 'canvas/place', [], ['x' => 1, 'y' => 1, 'c' => 5]), 401);
+expectErr('place outside → 400', req($A, 'POST', 'canvas/place', [], ['x' => 64, 'y' => 0, 'c' => 5]), 400, 'validation');
+expectErr('place bad color → 400', req($A, 'POST', 'canvas/place', [], ['x' => 0, 'y' => 0, 'c' => 16]), 400, 'validation');
+$r = req($A, 'POST', 'canvas/place', [], ['x' => 3, 'y' => 4, 'c' => 5]);
+check('A places a pixel → version up, wait = cooldown', isOk($r) && data($r)['version'] > $v0 && data($r)['wait'] > 0, desc($r));
+$r = req($A, 'POST', 'canvas/place', [], ['x' => 4, 'y' => 4, 'c' => 5]);
+check('A again right away → 429 with fields.wait', $r['status'] === 429 && errCode($r) === 'rate_limited' && (int) ($r['json']['error']['fields']['wait'] ?? 0) > 0, desc($r));
+expectOk('admin has no cooldown (1)', req($admin, 'POST', 'canvas/place', [], ['x' => 10, 'y' => 10, 'c' => 12]));
+expectOk('admin has no cooldown (2)', req($admin, 'POST', 'canvas/place', [], ['x' => 11, 'y' => 10, 'c' => 12]));
+$r = req($guest, 'GET', 'canvas/changes', ['after' => $v0, 'epoch' => $e0]);
+check('canvas/changes → our 3 pixels', isOk($r) && count(data($r)['changes'] ?? []) === 3 && in_array([3, 4, 5], data($r)['changes'], true), desc($r));
+$r = req($guest, 'GET', 'canvas');
+check('canvas data reflects pixel (3,4) = 5', substr((string) (data($r)['data'] ?? ''), 4 * 64 + 3, 1) === '5', 'got ' . substr((string) (data($r)['data'] ?? ''), 4 * 64 + 3, 1));
+$r = req($guest, 'GET', 'canvas/log', ['after' => 0, 'limit' => 2]);
+check('canvas/log paging (limit 2 → more)', isOk($r) && count(data($r)['items'] ?? []) === 2 && (data($r)['more'] ?? false) === true, desc($r));
+expectErr('clear canvas as user → 403', req($A, 'POST', 'canvas/clear'), 403);
+expectOk('admin clears canvas', req($admin, 'POST', 'canvas/clear'));
+$r = req($guest, 'GET', 'canvas/changes', ['after' => $v0, 'epoch' => $e0]);
+check('changes with old epoch → reset', isOk($r) && (data($r)['reset'] ?? false) === true, desc($r));
+$r = req($guest, 'GET', 'canvas');
+check('cleared canvas is empty (all background)', isOk($r) && trim((string) data($r)['data'], '1') === '' && data($r)['epoch'] === $e0 + 1, desc($r));
+
+/* ---------- Minecraft и вайтлист ---------- */
+section('fun: minecraft & whitelist');
+$mcNick = 'mc_' . $RUN;
+expectErr('minecraft nick invalid → 400', req($A, 'POST', 'me/minecraft', [], ['nick' => 'плохой ник']), 400, 'validation', ['nick']);
+expectErr('whitelist without nick → 400', req($A, 'POST', 'whitelist/request', [], ['server' => 'penta']), 400, 'validation');
+$r = req($A, 'POST', 'me/minecraft', [], ['nick' => $mcNick]);
+check('set minecraft nick → {nick, headUrl}', isOk($r) && (data($r)['minecraft']['nick'] ?? '') === $mcNick && str_starts_with((string) (data($r)['minecraft']['headUrl'] ?? ''), 'https://mc-heads.net/'), desc($r));
+expectErr('same nick (other case) for B → 400', req($B, 'POST', 'me/minecraft', [], ['nick' => strtoupper($mcNick)]), 400, 'validation', ['nick']);
+expectErr('whitelist unknown server → 400', req($A, 'POST', 'whitelist/request', [], ['server' => 'nope']), 400, 'validation');
+$r = req($A, 'POST', 'whitelist/request', [], ['server' => 'penta']);
+$wl = data($r)['whitelist'][0] ?? [];
+check('whitelist request → pending', isOk($r) && ($wl['status'] ?? '') === 'pending' && ($wl['nick'] ?? '') === $mcNick, desc($r));
+expectErr('second request while pending → 400', req($A, 'POST', 'whitelist/request', [], ['server' => 'penta']), 400, 'validation');
+expectErr('whitelist list as user → 403', req($A, 'GET', 'whitelist'), 403);
+$r = req($admin, 'GET', 'whitelist');
+check('admin sees the request', isOk($r) && in_array($wl['id'] ?? '', ids(data($r)), true), desc($r));
+$r = req($admin, 'POST', 'whitelist/update', [], ['id' => $wl['id'] ?? '', 'status' => 'approved', 'note' => 'Добро пожаловать']);
+check('admin approves → approved', isOk($r) && (data($r)['status'] ?? '') === 'approved', desc($r));
+$p = data(req($A, 'GET', 'me/profile')) ?? [];
+check('profile has progress, points, minecraft, whitelist', isset($p['progress']['xp'], $p['progress']['badges']) && is_int($p['points'] ?? null) && ($p['minecraft']['nick'] ?? '') === $mcNick && ($p['whitelist'][0]['status'] ?? '') === 'approved', short(json_encode($p)));
+$earned = array_column(array_filter($p['progress']['badges'] ?? [], fn($b) => $b['earned']), 'id');
+check('badges earned: first_web, miner, painter-progress counted', in_array('first_web', $earned, true) && in_array('miner', $earned, true), implode(',', $earned));
+$r = req($A, 'POST', 'me/minecraft', [], ['nick' => null]);
+check('unlink minecraft nick', isOk($r) && data($r)['minecraft'] === null, desc($r));
+
+/* ---------- Игра ---------- */
+section('fun: game');
+expectErr('score without start → 400', req($B, 'POST', 'game/score', [], ['score' => 10]), 400, 'validation');
+expectErr('game start as guest → 401', req($guest, 'GET', 'game/start'), 401);
+expectOk('game start', req($B, 'GET', 'game/start'));
+expectErr('impossible score → 400', req($B, 'POST', 'game/score', [], ['score' => 100000]), 400, 'validation');
+expectErr('score reuse of the same start → 400', req($B, 'POST', 'game/score', [], ['score' => 10]), 400, 'validation');
+req($B, 'GET', 'game/start');
+$r = req($B, 'POST', 'game/score', [], ['score' => 40]);
+check('honest score → best and rank', isOk($r) && data($r)['best'] >= 40 && data($r)['rank'] >= 1, desc($r));
+$r = req($guest, 'GET', 'game/top');
+check('game/top lists B', isOk($r) && in_array($B->user['id'], array_map(fn($x) => $x['user']['id'], data($r)['all'] ?? []), true), desc($r));
+foreach ($bIds as $id) { req($admin, 'POST', 'submission/delete', [], ['id' => $id]); unset($LEDGER['subs'][$id]); }
+reset_rl();
+
 /* ============================== Discord ============================== */
 section('discord');
 $dl = $BASE . '/api/discord-login.php';

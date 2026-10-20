@@ -1,0 +1,81 @@
+/* =========================================================
+   stream.css — пульт стрима (колесо, оверлеи, ставки, вайтлист)
+   ========================================================= */
+
+.st-kicker {
+  display: inline-flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  font: 600 .9rem var(--pixel); color: var(--danger); text-transform: uppercase; letter-spacing: .08em;
+}
+.st-skel { min-height: 460px; margin-top: 30px; }
+.st-block { padding-top: 40px; }
+.st-box { padding: 22px; border-radius: var(--r); }
+.st-note { margin: -12px 0 16px; max-width: 75ch; font-size: .92rem; }
+.st-sub { margin: 22px 0 10px; font: 700 1rem var(--pixel); text-transform: uppercase; color: var(--muted); }
+.py-link { color: var(--lime); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Колесо ---------- */
+.st-wheel-block { display: grid; grid-template-columns: minmax(0, 460px) 1fr; gap: 30px; align-items: center; padding: 28px; border-radius: var(--r); margin-top: 30px; }
+.st-wheel-wrap { position: relative; }
+.st-wheel { display: block; width: 100%; max-width: 460px; aspect-ratio: 1; filter: drop-shadow(0 0 30px rgba(93, 214, 44, .25)); }
+.st-wheel-side h2 { margin-bottom: 8px; }
+.st-spin { margin: 18px 0 12px; font: 700 1.2rem var(--pixel); padding: 16px 30px; }
+.st-result { min-height: 1.6em; font-size: 1.05rem; }
+.st-result b { color: var(--lime); }
+.st-result.is-fresh b { font: 700 1.4rem var(--pixel); text-shadow: 0 0 20px rgba(93, 214, 44, .6); animation: pyPop .6s var(--ease); }
+@keyframes pyPop { from { transform: scale(.6); opacity: 0; } }
+.st-cands { list-style: none; padding: 0; margin-top: 16px; display: grid; gap: 6px; max-height: 260px; overflow: auto; }
+.st-cands li { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; background: rgba(248, 248, 248, .04); font-size: .9rem; }
+.st-cands li.muted { display: block; }
+.st-cands b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.st-cands small { color: var(--faint); }
+.st-game { flex: none; padding: 2px 8px; border-radius: 6px; background: rgba(93, 214, 44, .14); color: var(--lime); font: 700 .75rem var(--pixel); }
+.st-game.big { padding: 10px 14px; font-size: 1rem; border-radius: 12px; }
+
+/* ---------- Текущее задание ---------- */
+.st-cur { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.st-cur b { display: block; font: 700 1.3rem var(--pixel); text-transform: uppercase; }
+.st-cur small { color: var(--faint); }
+.st-cur .spacer { flex: 1; }
+
+/* ---------- Оверлеи ---------- */
+.st-overlays { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.st-ov { display: grid; gap: 4px; padding: 16px; border-radius: var(--r-sm); }
+.st-ov small { color: var(--faint); }
+.st-ov-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+
+/* ---------- Ставки ---------- */
+.st-bet-form { display: grid; gap: 6px; margin-bottom: 16px; }
+.st-bet-opts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.st-bet-form .btn { justify-self: start; }
+.st-bets { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.st-bets .st-sub { grid-column: 1 / -1; }
+.st-bet { display: grid; align-content: start; gap: 10px; padding: 18px; border-radius: var(--r); }
+.st-bet header { display: flex; justify-content: space-between; align-items: center; }
+.st-bet h3 { font-size: 1.05rem; }
+.st-bet ul { list-style: none; padding: 0; display: grid; gap: 6px; }
+.st-bet li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(248, 248, 248, .04); }
+.st-bet li span { flex: 1; }
+.st-bet li small { color: var(--faint); }
+.st-bet li.is-win { outline: 1px solid var(--lime); color: var(--lime); }
+.st-bet-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- Вайтлист ---------- */
+.st-wl { list-style: none; padding: 0; display: grid; gap: 8px; }
+.st-wl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-sm); }
+.st-head-img { width: 40px; height: 40px; border-radius: 8px; image-rendering: pixelated; background: #202020; }
+.st-wl-text { display: grid; min-width: 140px; flex: 1; }
+.st-wl-text b { font: 700 1.05rem var(--mono); }
+.st-wl-text small { color: var(--faint); }
+.st-wl-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-mono { font-family: var(--mono); }
+.st-canvas { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.st-canvas p { flex: 1 1 320px; }
+
+@media (max-width: 900px) {
+  .st-wheel-block { grid-template-columns: 1fr; justify-items: center; }
+  .st-bet-opts { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .st-wheel-block { padding: 18px; }
+  .st-bets { grid-template-columns: 1fr; }
+}

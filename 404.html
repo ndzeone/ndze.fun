@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <!-- Сервер отдаёт эту страницу по любому несуществующему адресу (/foo/bar/…): все относительные
+       ссылки — и наши, и те, что рисует layout.js (меню, аватарки), — считаем от корня сайта. -->
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Страница не найдена — ndze</title>
+  <meta name="description" content="Такой страницы нет — зато можно побегать по ночным крышам за Человека-паука и попасть в таблицу рекордов.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Без ведущего «/» (работает через <base>), чтобы tools/stamp-assets.php дописал ?v=… при деплое -->
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/runner.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main">
+    <header class="page-head rn-404">
+      <p class="rn-404-code" aria-hidden="true">404</p>
+      <h1>Страница уползла в&nbsp;паутину…</h1>
+      <p>Такой страницы нет — ссылка устарела или в адресе опечатка. Зато можно побегать по&nbsp;крышам!</p>
+      <div class="rn-404-actions">
+        <a class="btn btn-primary" href="/index.html">На главную</a>
+        <a class="btn btn-ghost" href="/projects.html">Проекты</a>
+      </div>
+    </header>
+
+    <div class="rn-404-game" id="game">
+      <div class="skeleton" aria-hidden="true"></div>
+      <noscript><p class="empty">Для мини-игры нужен JavaScript.</p></noscript>
+    </div>
+  </main>
+
+  <script type="module">
+    // Версия ?v=… приходит со стилями (её дописывает деплой) — передаём её модулям. Тогда layout.js,
+    // который импортируем здесь, и layout.js внутри runner.js — один и тот же модуль, а не две копии
+    // (иначе игра не увидит вошедшего пользователя).
+    const v = new URL(document.querySelector('link[href*="runner.css"]').href).search;
+    const { mountLayout } = await import(`/assets/js/core/layout.js${v}`);
+    const { mountRunner } = await import(`/assets/js/core/runner.js${v}`);
+
+    await mountLayout("404");
+    // <base href="/"> увёл бы ссылку «К содержимому» (#main) на главную — возвращаем её на эту страницу
+    document.querySelector(".skip")?.setAttribute("href", `${location.pathname}${location.search}#main`);
+    mountRunner(document.querySelector("#game"));
+  </script>
+</body>
+</html>

@@ -75,6 +75,20 @@ api/schema.sql             таблицы MySQL; применяется авто
 | POST | `me/avatar/delete` | — | `User` (avatarUrl null; из Discord больше не подтягивается) | вход |
 | POST | `me/discord/unlink` | — | `Profile` (400, если нет email+пароля) | вход |
 | GET | `avatar` | `id` (id пользователя), `v` | картинка (не JSON); 404 если аватарки нет | все |
+| GET | `live` | — | `{ live, channel, title, game, uptime, checkedAt }` — идёт ли стрим (decapi.me, кэш 60 с) | все |
+| GET | `leaderboard` | — | топ-10 по XP: `[{ user, xp, level, title, badges }]` | все |
+| GET | `stream` / POST `stream` | `{ regenerateKey?, currentTaskId? }` | ключ оверлея, текущее задание, последний спин, кандидаты колеса | админ |
+| POST | `wheel/spin` | — | спин: `{ id, at, candidates, winnerIndex, winnerId }`; победитель → статус live | админ |
+| GET | `overlay` | `key` | `{ currentTask, topTasks, lastWork, wheel, live }` (403 без верного ключа) | по ключу |
+| GET | `battle/pair` · POST `battle/vote` · GET `battle/top` | `{ winnerId, loserId }` | пара работ «Идеал» / новые рейтинги Эло / работа недели и топ | все / вход / все |
+| GET | `predictions` | — | `{ items, balance, start }` | все |
+| POST | `prediction/bet` | `{ id, option, amount }` | `{ item, balance }` (одна ставка на вопрос, 10…баланс) | вход |
+| POST | `prediction/create` · `prediction/update` | `{ question, options[] }` / `{ id, action: lock\|open\|resolve\|cancel, option? }` | Prediction | админ |
+| GET | `canvas` · `canvas/changes` · `canvas/log` | `after`, `epoch`, `limit` | холст 64×64 / изменения или `{reset}` / журнал для таймлапса | все |
+| POST | `canvas/place` · `canvas/clear` | `{ x, y, c }` | `{ version, wait }`; 429 `rate_limited`, `fields.wait` | вход (кулдаун 300 с) / админ |
+| POST | `me/minecraft` · `me/avatar/minecraft` | `{ nick \| null }` | `{ minecraft }` / `User` (голова скина) | вход |
+| POST | `whitelist/request` · GET `whitelist` · POST `whitelist/update` | `{ server }` / — / `{ id, status, note }` | заявки в вайтлист Penta | вход / админ / админ |
+| GET | `game/start` · POST `game/score` · GET `game/top` | `{ score }` | рекорды игры на 404 (≤ 80 очков в секунду забега) | вход / вход / все |
 | GET | `stats` | — | `Stats` | админ |
 | GET | `health` | — | `{ php, db, schema, storage, gd, curl }` (true/false + версия php) | все |
 | GET | `health/discord` | — | `{ reachable, ms, error? }` — доступен ли discord.com с сервера | админ |

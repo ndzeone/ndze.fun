@@ -68,6 +68,8 @@
 .mc-state i { width: 10px; height: 10px; border-radius: 2px; background: #80848e; }
 .mc-state.is-on i { background: var(--lime); box-shadow: 0 0 10px var(--lime); animation: pulseLime 2s infinite; }
 .mc-state.is-off i { background: var(--danger); }
+.mc-heads { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; }
+.mc-heads img { width: 28px; height: 28px; border-radius: 6px; image-rendering: pixelated; box-shadow: 0 0 0 1px rgba(248, 248, 248, .2); }
 .pj-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: auto; }
 .pj-actions svg { width: 18px; height: 18px; }
 .pj-copy { font-family: var(--mono); font-weight: 600; font-size: .8rem; }

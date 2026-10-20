@@ -206,5 +206,44 @@ export function createPhpBackend() {
     stats() {
       return call("stats");
     },
+
+    /* ---------- Движ: эфир, лидеры, битва, ставки, холст, Minecraft, игра, пульт ---------- */
+    live: () => call("live"),
+    leaderboard: () => call("leaderboard"),
+
+    battlePair: () => call("battle/pair"),
+    battleVote: (winnerId, loserId) => post("battle/vote", { winnerId, loserId }),
+    battleTop: () => call("battle/top"),
+
+    predictions: () => call("predictions"),
+    placeBet: (id, option, amount) => post("prediction/bet", { id, option: Number(option), amount: Number(amount) }),
+    createPrediction: ({ question, options }) => post("prediction/create", { question, options }),
+    updatePrediction: (id, action, option) => post("prediction/update", option === undefined ? { id, action } : { id, action, option: Number(option) }),
+
+    canvas: () => call("canvas"),
+    canvasChanges: (after, epoch) => call("canvas/changes", { query: { after, epoch } }),
+    canvasLog: (after = 0, limit = 5000) => call("canvas/log", { query: { after, limit } }),
+    placePixel: (x, y, c) => post("canvas/place", { x, y, c }),
+    clearCanvas: () => post("canvas/clear"),
+
+    async setMinecraft(nick) {
+      const r = await post("me/minecraft", { nick: nick ? String(nick).trim() : null });
+      return r.minecraft;
+    },
+    async avatarFromMinecraft() {
+      return setUser(await post("me/avatar/minecraft"));
+    },
+    whitelistRequest: (server = "penta") => post("whitelist/request", { server }),
+    whitelist: () => call("whitelist"),
+    updateWhitelist: (id, status, note = "") => post("whitelist/update", { id, status, note }),
+
+    gameStart: () => call("game/start"),
+    gameScore: (score) => post("game/score", { score: Math.max(0, Math.floor(score)) }),
+    gameTop: () => call("game/top"),
+
+    stream: () => call("stream"),
+    updateStream: (patch) => post("stream", patch),
+    spinWheel: () => post("wheel/spin"),
+    overlay: (key) => call("overlay", { query: { key } }),
   };
 }

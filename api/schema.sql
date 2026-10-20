@@ -128,7 +128,8 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 INSERT IGNORE INTO schema_version (version, applied_at) VALUES (1, UTC_TIMESTAMP(3));
 
 -- v2: профиль (личный кабинет). Аватарка: <storage>/avatars/<avatar_file>, квадрат 256×256.
--- avatar_source: 'upload' — загрузил сам, 'discord' — взята из Discord при входе, 'removed' — удалил (из Discord больше не берём).
+-- avatar_source: 'upload' — загрузил сам, 'discord' — взята из Discord при входе, 'mc' — голова скина Minecraft,
+-- 'removed' — удалил (из Discord больше не берём).
 -- discord_avatar — хеш аватарки Discord, чтобы не скачивать её заново при каждом входе.
 -- discord_unlinked — Discord id, который пользователь отвязал: вход им больше не привязывается к аккаунту по email.
 -- auth_epoch — растёт при смене пароля / отвязке Discord; сессии со старым значением считаются вышедшими.
@@ -146,3 +147,132 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 INSERT IGNORE INTO schema_version (version, applied_at) VALUES (2, UTC_TIMESTAMP(3));
+
+-- v3: «движ» — настройки, битва работ, ставки, пиксельный холст, Minecraft, вайтлист, игра на 404.
+-- Настройки сайта ключ → значение (JSON): ключ оверлеев, текущее задание, последний спин колеса, кэш «в эфире».
+CREATE TABLE IF NOT EXISTS settings (
+  k VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  v MEDIUMTEXT NOT NULL,
+  updated_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (k)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Битва работ: рейтинг Эло работ из галереи (ideal) и голоса (один голос пользователя на пару работ).
+CREATE TABLE IF NOT EXISTS battle_ratings (
+  submission_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  rating INT NOT NULL DEFAULT 1000,
+  wins INT UNSIGNED NOT NULL DEFAULT 0,
+  losses INT UNSIGNED NOT NULL DEFAULT 0,
+  updated_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (submission_id),
+  KEY ix_battle_rating (rating),
+  CONSTRAINT fk_battle_sub FOREIGN KEY (submission_id) REFERENCES submissions (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS battle_votes (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  winner_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  loser_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  pair_key CHAR(73) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  created_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_battle_pair (user_id, pair_key),
+  KEY ix_battle_winner (winner_id, created_at),
+  KEY ix_battle_created (created_at),
+  CONSTRAINT fk_bv_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_bv_winner FOREIGN KEY (winner_id) REFERENCES submissions (id) ON DELETE CASCADE,
+  CONSTRAINT fk_bv_loser FOREIGN KEY (loser_id) REFERENCES submissions (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Ставки на стрим (только сайтовые баллы). options — JSON-массив строк, status: open | locked | resolved | cancelled.
+CREATE TABLE IF NOT EXISTS predictions (
+  id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  question VARCHAR(160) NOT NULL,
+  options TEXT NOT NULL,
+  status VARCHAR(10) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'open',
+  result TINYINT UNSIGNED NULL,
+  created_at DATETIME(3) NOT NULL,
+  updated_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  KEY ix_pred_status (status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- payout: NULL — ставка не рассчитана; при отмене возвращается amount.
+CREATE TABLE IF NOT EXISTS prediction_bets (
+  prediction_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  option_idx TINYINT UNSIGNED NOT NULL,
+  amount INT UNSIGNED NOT NULL,
+  payout INT UNSIGNED NULL,
+  created_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (prediction_id, user_id),
+  KEY ix_bet_user (user_id),
+  CONSTRAINT fk_bet_pred FOREIGN KEY (prediction_id) REFERENCES predictions (id) ON DELETE CASCADE,
+  CONSTRAINT fk_bet_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Пиксельный холст 64×64: текущее состояние + журнал (кулдаун, таймлапс, значок «Художник»).
+-- epoch растёт при очистке холста (settings.canvas_epoch): таймлапс показывает только текущую эпоху.
+CREATE TABLE IF NOT EXISTS canvas_pixels (
+  x TINYINT UNSIGNED NOT NULL,
+  y TINYINT UNSIGNED NOT NULL,
+  color TINYINT UNSIGNED NOT NULL,
+  updated_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (x, y)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS canvas_log (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  x TINYINT UNSIGNED NOT NULL,
+  y TINYINT UNSIGNED NOT NULL,
+  color TINYINT UNSIGNED NOT NULL,
+  user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  epoch INT UNSIGNED NOT NULL DEFAULT 0,
+  created_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  KEY ix_canvas_user (user_id, created_at),
+  KEY ix_canvas_epoch (epoch, id),
+  CONSTRAINT fk_canvas_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Ник Minecraft (уникален без учёта регистра) и заявки в вайтлист.
+CREATE TABLE IF NOT EXISTS user_minecraft (
+  user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  nick VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  nick_key VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  updated_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (user_id),
+  UNIQUE KEY uq_mc_nick (nick_key),
+  CONSTRAINT fk_mc_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS whitelist_requests (
+  id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  server VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  nick VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  status VARCHAR(10) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'pending',
+  admin_note VARCHAR(300) NULL,
+  created_at DATETIME(3) NOT NULL,
+  updated_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  KEY ix_wl_user (user_id, server),
+  KEY ix_wl_status (status, created_at),
+  CONSTRAINT fk_wl_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Рекорды мини-игры на странице 404.
+CREATE TABLE IF NOT EXISTS game_scores (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  score INT UNSIGNED NOT NULL,
+  created_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  KEY ix_game_score (score),
+  KEY ix_game_user (user_id, score),
+  KEY ix_game_created (created_at),
+  CONSTRAINT fk_game_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO schema_version (version, applied_at) VALUES (3, UTC_TIMESTAMP(3));

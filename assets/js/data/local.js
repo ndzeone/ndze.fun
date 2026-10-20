@@ -90,6 +90,12 @@ async function avatarDataUrl(file) {
   return canvas.toDataURL("image/webp", 0.88);
 }
 
+const DEMO_PALETTE = ["#0f0f0f", "#202020", "#5a5a5a", "#a0a0a0", "#f8f8f8", "#5dd62c", "#337418", "#2fd673",
+  "#4aa8ff", "#1d3f9e", "#8b6cff", "#e05cff", "#ff3b4a", "#ff8a3d", "#ffd166", "#7a4a2b"];
+async function demoOnly() {
+  throw new ApiError("validation", "Это работает на сайте ndze.fun (в локальном демо-режиме нет)");
+}
+
 const publicUser = (u) => (u ? { id: u.id, nick: u.nick, email: u.email, role: u.role, avatarUrl: u.avatarUrl ?? null, createdAt: u.createdAt } : null);
 const byUpdatedDesc = (a, b) => b.updatedAt.localeCompare(a.updatedAt);
 
@@ -415,6 +421,34 @@ export function createLocalBackend() {
       await write("tasks", tasks.filter((x) => x.id !== id));
       await write("votes", (await read("votes", [])).filter((v) => v.taskId !== id));
     },
+
+    /* ---------- Движ: в демо-режиме только «пустые» ответы, остальное работает на ndze.fun ---------- */
+    live: async () => ({ live: false, channel: "ndze_one", title: null, game: null, uptime: null, checkedAt: now() }),
+    leaderboard: async () => [],
+    battlePair: async () => ({ pair: null, total: 0 }),
+    battleVote: demoOnly,
+    battleTop: async () => ({ week: null, top: [] }),
+    predictions: async () => ({ items: [], balance: null, start: 1000 }),
+    placeBet: demoOnly,
+    createPrediction: demoOnly,
+    updatePrediction: demoOnly,
+    canvas: async () => ({ w: 64, h: 64, palette: DEMO_PALETTE, data: "1".repeat(64 * 64), version: 0, epoch: 0, wait: null, cooldown: 300 }),
+    canvasChanges: async (after) => ({ version: after, changes: [] }),
+    canvasLog: async () => ({ items: [], more: false }),
+    placePixel: demoOnly,
+    clearCanvas: demoOnly,
+    setMinecraft: demoOnly,
+    avatarFromMinecraft: demoOnly,
+    whitelistRequest: demoOnly,
+    whitelist: async () => [],
+    updateWhitelist: demoOnly,
+    gameStart: demoOnly,
+    gameScore: demoOnly,
+    gameTop: async () => ({ all: [], week: [] }),
+    stream: demoOnly,
+    updateStream: demoOnly,
+    spinWheel: demoOnly,
+    overlay: demoOnly,
 
     /* ---------- Админ ---------- */
     async stats() {

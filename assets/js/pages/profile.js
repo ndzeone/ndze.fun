@@ -12,6 +12,7 @@ const fileInput = $("#avatarInput");
 const TABS = [
   { id: "works", label: "Мои работы" },
   { id: "tasks", label: "Мои задания" },
+  { id: "badges", label: "Достижения" },
   { id: "settings", label: "Настройки" },
 ];
 let profile = null; // Profile из api.getProfile()
@@ -77,8 +78,41 @@ function render() {
 }
 
 function tabCount(id) {
+  if (id === "badges" && profile.progress) {
+    return `<span class="tab-n">${profile.progress.badges.filter((b) => b.earned).length}/${profile.progress.badges.length}</span>`;
+  }
   const n = id === "works" ? works.length : id === "tasks" ? tasks.length : null;
   return n === null ? "" : `<span class="tab-n">${n}</span>`;
+}
+
+/** Уровень, полоска опыта и баллы для ставок. */
+function levelHTML() {
+  const p = profile.progress;
+  if (!p) return "";
+  const span = Math.max(1, p.nextLevelXp - p.levelXp);
+  const pct = Math.min(100, Math.round(((p.xp - p.levelXp) / span) * 100));
+  return `<div class="pf-level">
+    <span class="pf-lv" title="Уровень">ур. ${p.level}</span>
+    <div class="pf-xp">
+      <div class="pf-xp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Опыт до следующего уровня"><i style="width:${pct}%"></i></div>
+      <small>${esc(p.title)} · ${p.xp} / ${p.nextLevelXp} XP</small>
+    </div>
+    ${typeof profile.points === "number" ? `<a class="pf-points" href="play.html#bets" title="Баллы для ставок на стрим">🔮 ${profile.points}</a>` : ""}
+  </div>`;
+}
+
+function badgesHTML() {
+  const p = profile.progress;
+  if (!p) return `<div class="empty"><span class="empty-icon">🏅</span><p>Достижения работают на сайте ndze.fun.</p></div>`;
+  const earned = p.badges.filter((b) => b.earned);
+  return `<p class="pf-badges-intro muted">Получено ${earned.length} из ${p.badges.length}. Опыт капает за работы, задания, голоса в <a class="pf-link" href="play.html#battle">битве</a>, ставки, пиксели на <a class="pf-link" href="play.html#canvas">холсте</a> и рекорды в <a class="pf-link" href="play.html#game">игре</a>.</p>
+    <ul class="pf-badge-grid">${p.badges.map((b) => `<li class="pf-badge glass${b.earned ? " is-earned" : ""}">
+      <span class="pf-badge-icon" aria-hidden="true">${esc(b.icon)}</span>
+      <b>${esc(b.title)}</b>
+      <small>${esc(b.description)}</small>
+      ${b.earned ? '<span class="badge lime">получен</span>'
+        : `<span class="pf-badge-prog" role="progressbar" aria-valuemin="0" aria-valuemax="${b.need}" aria-valuenow="${b.have}" aria-label="${esc(b.title)}"><i style="width:${Math.round((b.have / b.need) * 100)}%"></i></span><small class="faint">${b.have} / ${b.need}</small>`}
+    </li>`).join("")}</ul>`;
 }
 
 function heroHTML() {
@@ -104,6 +138,7 @@ function heroHTML() {
         <span class="badge plain">на сайте с ${esc(formatDate(u.createdAt))}</span>
         ${profile.discordLinked ? `<span class="badge pf-discord-badge">${DISCORD_SVG}Discord</span>` : ""}
       </div>
+      ${levelHTML()}
       <p class="pf-email">${u.email ? esc(u.email) : "email не указан — входишь через Discord"}</p>
       <div class="pf-quick">
         <a class="btn btn-primary btn-sm magnetic" href="review.html">Прислать работу ↗</a>
@@ -154,6 +189,7 @@ function countUp(el) {
 /* ---------- Вкладки ---------- */
 function panelHTML() {
   if (tab === "tasks") return tasksHTML();
+  if (tab === "badges") return badgesHTML();
   if (tab === "settings") return settingsHTML();
   return worksHTML();
 }
@@ -262,12 +298,44 @@ function settingsHTML() {
            <button class="btn btn-discord btn-sm" type="button" data-act="discord-link">${DISCORD_SVG}<span>Привязать Discord</span><span class="spinner light" aria-hidden="true"></span></button>`}
     </div>
 
+    ${minecraftHTML()}
+
     <div class="pf-card glass pf-exit">
       <h3>Выход</h3>
       <p class="muted">Выйти из аккаунта в этом браузере.</p>
       <button class="btn btn-danger btn-sm" type="button" data-logout>Выйти из аккаунта</button>
     </div>
   </div>`;
+}
+
+const WL_STATUS = { pending: ["ждёт ответа", "info"], approved: ["одобрена", "lime"], rejected: ["отклонена", "danger"] };
+
+function minecraftHTML() {
+  const mc = profile.minecraft;
+  const reqs = profile.whitelist || [];
+  const active = reqs.find((r) => r.server === "penta" && r.status !== "rejected");
+  return `<form class="pf-card glass pf-mc" id="mcForm" novalidate>
+    <h3><span class="pf-mc-icon" aria-hidden="true">⛏</span>Minecraft</h3>
+    <p class="muted">Укажи ник — голова скина станет аватаркой (по желанию), и можно подать заявку в вайтлист Penta SMP.</p>
+    <div class="pf-mc-row">
+      ${mc ? `<img class="pf-mc-head" src="${esc(mc.headUrl)}" alt="" width="56" height="56" loading="lazy">` : '<span class="pf-mc-head is-empty" aria-hidden="true">?</span>'}
+      <div class="field">
+        <input id="sMc" name="nick" type="text" placeholder=" " maxlength="16" autocomplete="off" spellcheck="false" value="${esc(mc?.nick || "")}" aria-describedby="sMc-err">
+        <label for="sMc">Ник Minecraft</label><span class="error-msg" id="sMc-err"></span>
+      </div>
+    </div>
+    <p class="form-error" role="alert"></p>
+    <div class="pf-mc-actions">
+      <button class="btn btn-primary btn-sm" type="submit"><span>${mc ? "Сохранить ник" : "Привязать ник"}</span><span class="spinner" aria-hidden="true"></span></button>
+      ${mc ? `<button class="btn btn-ghost btn-sm" type="button" data-act="mc-avatar"><span>Голову скина — в аватарку</span><span class="spinner light" aria-hidden="true"></span></button>
+        <button class="btn btn-ghost btn-sm" type="button" data-act="mc-remove">Отвязать</button>` : ""}
+    </div>
+    ${mc ? `<div class="pf-wl">
+      <b>Вайтлист Penta SMP</b>
+      ${reqs.length ? `<ul>${reqs.map((r) => `<li><span class="badge ${WL_STATUS[r.status]?.[1] || "plain"}">${esc(WL_STATUS[r.status]?.[0] || r.status)}</span> ${esc(r.serverName)} · ${esc(r.nick)} · ${esc(timeAgo(r.createdAt))}${r.adminNote ? ` — «${esc(r.adminNote)}»` : ""}</li>`).join("")}</ul>` : ""}
+      ${active ? "" : `<button class="btn btn-ghost btn-sm" type="button" data-act="wl-request"><span>Подать заявку</span><span class="spinner light" aria-hidden="true"></span></button>`}
+    </div>` : ""}
+  </form>`;
 }
 
 /* ---------- Формы настроек ---------- */
@@ -327,6 +395,15 @@ root.addEventListener("submit", (e) => {
       toast(`Теперь ты — ${nick}`);
     });
   }
+  if (form.id === "mcForm") {
+    const nick = form.elements.nick.value.trim();
+    if (!/^[A-Za-z0-9_]{3,16}$/.test(nick)) return showErrors(form, { nick: "3–16 символов: латиница, цифры и _" });
+    submitForm(form, async () => {
+      profile.minecraft = await api.setMinecraft(nick);
+      toast("Ник Minecraft сохранён ⛏");
+      setTab("settings");
+    });
+  }
   if (form.id === "passForm") {
     const data = {
       currentPassword: form.elements.currentPassword?.value ?? "",
@@ -375,6 +452,29 @@ root.addEventListener("click", async (e) => {
       act.classList.add("is-loading");
       try {
         await api.linkDiscord(); // уходим на Discord
+      } catch (err) {
+        toast(err.message, "error", 6000);
+        act.disabled = false;
+        act.classList.remove("is-loading");
+      }
+      return;
+    case "mc-avatar":
+    case "mc-remove":
+    case "wl-request":
+      act.disabled = true;
+      act.classList.add("is-loading");
+      try {
+        if (act.dataset.act === "mc-avatar") {
+          await api.avatarFromMinecraft(); // onUserChange обновит шапку
+          toast("Теперь аватарка — голова твоего скина");
+        } else if (act.dataset.act === "mc-remove") {
+          profile.minecraft = await api.setMinecraft(null);
+          toast("Ник Minecraft отвязан");
+        } else {
+          profile.whitelist = (await api.whitelistRequest("penta")).whitelist;
+          toast("Заявка отправлена — ndze посмотрит её на стриме");
+        }
+        if (tab === "settings") setTab("settings");
       } catch (err) {
         toast(err.message, "error", 6000);
         act.disabled = false;

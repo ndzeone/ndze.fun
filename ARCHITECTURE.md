@@ -9,6 +9,10 @@
 |---|---|---|---|
 | `index.html` | `home` | Главная: герой с Человеком-пауком, проекты, Twitch, YouTube, Discord-серверы | `pages/home.js`, `home.css` |
 | `projects.html` | `projects` | Мои и совместные проекты (список — `SITE.projects` в config.js) | `pages/projects.js`, `projects.css` |
+| `play.html` | `play` | «Движ»: битва работ, ставки баллами, общий холст, лидеры, мини-игра | `pages/play.js`, `play.css` (+ `core/place.js`, `core/runner.js`) |
+| `stream.html` | `stream` | Пульт стрима (админ): колесо заданий, оверлеи OBS, ставки, вайтлист, холст | `pages/stream.js`, `stream.css`, `core/wheel.js` |
+| `overlay.html?w=…&key=…` | — | Оверлеи для OBS (прозрачный фон, без шапки) | `pages/overlay.js`, `overlay.css` |
+| `404.html` | `404` | Страница 404 с мини-игрой «бег по крышам» | `core/runner.js`, `runner.css` |
 | `profile.html` | `profile` | Личный кабинет: аватарка, ник, пароль, Discord, мои работы и задания | `pages/profile.js`, `profile.css` |
 | `repos.html` | `repos` | Все репозитории GitHub (открытые + закрытые) | `pages/repos.js`, `repos.css` |
 | `repo.html?name=X&path=Y` | `repos` | Просмотр кода открытого репозитория | `pages/repo.js`, `repo.css` |

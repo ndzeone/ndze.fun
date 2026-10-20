@@ -42,7 +42,8 @@ export async function minecraftStatus(ip) {
     });
     if (!res.ok) return null;
     const j = await res.json();
-    return { online: !!j.online, players: j.players?.online ?? 0, max: j.players?.max ?? 0, version: j.version?.name_clean || "" };
+    const list = (j.players?.list || []).map((p) => p.name_clean || p.name_raw).filter((n) => /^[A-Za-z0-9_]{1,16}$/.test(n || "")).slice(0, 12);
+    return { online: !!j.online, players: j.players?.online ?? 0, max: j.players?.max ?? 0, version: j.version?.name_clean || "", list };
   } catch {
     return null;
   }
@@ -57,6 +58,15 @@ export function showMinecraft(box, st) {
   el.querySelector("span").textContent = !st ? "Minecraft-сервер: статус недоступен"
     : st.online ? `Онлайн: ${st.players} ${playersLabel(st.players)}${st.max ? ` из ${st.max}` : ""}${st.version ? ` · ${st.version}` : ""}`
       : "Minecraft-сервер пока офлайн";
+  // кто сейчас играет: головы скинов (если сервер отдаёт список игроков)
+  box.querySelector(".mc-heads")?.remove();
+  if (st?.online && st.list?.length) {
+    const heads = document.createElement("div");
+    heads.className = "mc-heads";
+    heads.setAttribute("aria-label", "Сейчас играют");
+    heads.innerHTML = st.list.map((n) => `<img src="https://mc-heads.net/avatar/${encodeURIComponent(n)}/32" alt="${n}" title="${n}" width="28" height="28" loading="lazy">`).join("");
+    el.after(heads);
+  }
 }
 
 /** Плавно обновить число в элементе (с «прыжком», если изменилось). */

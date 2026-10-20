@@ -17,7 +17,9 @@
 //   Task       = { id, userId, authorNick, authorAvatar, game, title, description, difficulty: 1|2|3, status,
 //                  adminNote: string|null, votes: number, myVote: boolean, createdAt, updatedAt }
 //   Profile    = { user: User, hasPassword: boolean, discordLinked: boolean,
-//                  stats: { submissions, ideal, avgRating: number|null, tasks, tasksDone, votesReceived } }
+//                  stats: { submissions, ideal, avgRating: number|null, tasks, tasksDone, votesReceived },
+//                  progress: { xp, level, title, levelXp, nextLevelXp, badges: [{id,title,description,icon,earned,have,need}] },
+//                  points, minecraft: { nick, headUrl } | null, whitelist: [{ id, server, serverName, nick, status, adminNote, createdAt }] }
 //   Stats      = { users, submissions: { total, pending, revision, ideal, rejected },
 //                  tasks: { total, new, accepted, live, done, rejected } }
 //   Справочники id: CATEGORIES / SUB_STATUSES / GAMES / TASK_STATUSES в constants.js
@@ -57,6 +59,31 @@
 //   api.toggleVote(id)                           → { votes, myVote }   (нужен вход)
 //   api.updateTask(id, { status?, adminNote? })  → Task         (только админ)
 //   api.deleteTask(id)                           → void         (автор, пока статус "new", или админ)
+//
+// Движ (в демо-режиме чтение возвращает пустые данные, запись — ApiError validation):
+//   api.live()                → { live, channel, title, game, uptime, checkedAt }   // идёт ли стрим (кэш 60 с)
+//   api.leaderboard()         → [{ user:{id,nick,avatarUrl}, xp, level, title, badges }]   // топ-10 по XP
+//   api.battlePair()          → { pair: [Lean, Lean] | null, total, allVoted? }   Lean = { id, title, category,
+//                                authorNick, authorAvatar, imageUrl, rating, wins, losses }
+//   api.battleVote(winnerId, loserId) → { winner: Lean, loser: Lean, delta }   (вход; один голос на пару)
+//   api.battleTop()           → { week: Lean & { weekWins } | null, top: Lean[] }
+//   api.predictions()         → { items: Prediction[], balance: number|null, start }
+//                                Prediction = { id, question, options:[{text,pool,bettors}], status: open|locked|resolved|cancelled,
+//                                result, totalPool, createdAt, updatedAt, myBet: {option,amount,payout}|null }
+//   api.placeBet(id, option, amount)          → { item: Prediction, balance }
+//   api.createPrediction({question, options}) / api.updatePrediction(id, "lock"|"open"|"resolve"|"cancel", option?)  (админ)
+//   api.canvas()              → { w, h, palette: string[16], data: строка w·h символов 0-f по строкам, version, epoch, wait: сек|null, cooldown }
+//   api.canvasChanges(after, epoch) → { version, changes: [[x,y,c]] } | { reset: true }
+//   api.canvasLog(after, limit)     → { items: [[id,x,y,c]], more }      // таймлапс текущей эпохи
+//   api.placePixel(x, y, c)   → { version, wait }   (вход; 429 rate_limited, fields.wait — сколько секунд ждать)
+//   api.clearCanvas()         (админ)
+//   api.setMinecraft(nick|null) → { nick, headUrl } | null;  api.avatarFromMinecraft() → User
+//   api.whitelistRequest("penta") → { whitelist };  api.whitelist() / api.updateWhitelist(id, status, note)  (админ)
+//   api.gameStart()           → { startedAt }   (вход; перед каждым забегом)
+//   api.gameScore(score)      → { score, best, rank }   (не больше 80 очков на секунду забега)
+//   api.gameTop()             → { all: [{user, score}], week: [{user, score}] }
+//   api.stream() / api.updateStream({ regenerateKey?, currentTaskId? }) / api.spinWheel()   (админ, пульт)
+//   api.overlay(key)          → { currentTask, topTasks, lastWork, wheel, live }   (оверлеи OBS по ключу)
 //
 // Админ:
 //   api.stats()                                  → Stats        (только админ)

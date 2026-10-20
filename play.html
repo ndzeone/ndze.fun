@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Движ — ndze</title>
+  <meta name="description" content="Движ на сайте ndze: битва работ, ставки баллами на стрим, общий пиксельный холст, таблица лидеров и мини-игра.">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/play.css">
+  <link rel="stylesheet" href="assets/css/place.css">
+  <link rel="stylesheet" href="assets/css/runner.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main">
+    <header class="page-head py-head">
+      <p class="py-kicker"><span class="pulse-dot" aria-hidden="true"></span>Для зрителей</p>
+      <h1>Движ</h1>
+      <p>Голосуй в битве работ, ставь баллы на исход стрима, рисуй на общем холсте и бей рекорды — за всё капает опыт и значки в личном кабинете.</p>
+    </header>
+
+    <div class="play-tabs" role="tablist" aria-label="Разделы" id="playTabs"></div>
+    <section class="play-panel" id="playPanel" role="tabpanel"></section>
+  </main>
+
+  <script type="module" src="assets/js/pages/play.js"></script>
+</body>
+</html>

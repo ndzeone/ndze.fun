@@ -28,6 +28,12 @@
 .spidey.is-unmasked .mask-roll { transform: translateY(-340px); }
 .spidey .lens { transform-box: fill-box; transform-origin: center; animation: blink 5s infinite; }
 @keyframes blink { 0%, 93%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.12); } }
+/* «Паучье чутьё»: во время стрима линзы маски светятся и пульсируют */
+html.is-live .spidey .lenses { animation: liveLens 1.6s ease-in-out infinite; }
+@keyframes liveLens {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 59, 74, .7)); }
+  50% { filter: drop-shadow(0 0 16px rgba(255, 59, 74, 1)) drop-shadow(0 0 30px rgba(145, 70, 255, .8)); }
+}
 .spidey .brow { transition: transform .5s var(--ease) .35s; }
 .spidey.is-unmasked .brow { transform: translateY(-4px); }
 .spidey-caption {
@@ -131,6 +137,21 @@
 .game-pill.gta { color: #4aa8ff; border-color: rgba(74, 168, 255, .45); background: rgba(74, 168, 255, .1); }
 .cc-go { margin-top: auto; font-weight: 700; color: var(--lime); }
 
+/* ---------- Зал славы ---------- */
+.fame { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+.fame .skeleton { min-height: 280px; }
+.fame-card { display: grid; align-content: start; gap: 14px; padding: 26px; }
+.fame-list { list-style: none; padding: 0; display: grid; gap: 8px; }
+.fame-row { display: grid; grid-template-columns: 30px auto 1fr auto; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; background: rgba(248, 248, 248, .04); }
+.fame-place { font: 700 1.1rem var(--pixel); text-align: center; }
+.fame-name { display: grid; min-width: 0; }
+.fame-name b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fame-name small { color: var(--faint); font-size: .8rem; }
+.fame-xp { font: 700 .95rem var(--pixel); color: var(--lime); }
+.fame-week img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--r-sm); box-shadow: 0 0 0 2px #ffd166, 0 0 36px rgba(255, 209, 102, .3); }
+.fame-week h3 { font: 700 1.4rem var(--pixel); text-transform: uppercase; }
+.fame-card .cc-go { margin-top: 4px; }
+
 /* ---------- Discord ---------- */
 .dc-live { display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; }
 .dc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
@@ -207,6 +228,8 @@
 .mc-state i { width: 10px; height: 10px; border-radius: 2px; background: #80848e; }
 .mc-state.is-on i { background: var(--lime); box-shadow: 0 0 10px var(--lime); animation: pulseLime 2s infinite; }
 .mc-state.is-off i { background: var(--danger); }
+.mc-heads { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; }
+.mc-heads img { width: 28px; height: 28px; border-radius: 6px; image-rendering: pixelated; box-shadow: 0 0 0 1px rgba(248, 248, 248, .2); }
 .dc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .dc-actions .btn-discord svg { width: 20px; height: 20px; }
 .dc-copy { font-family: var(--mono); font-weight: 600; font-size: .8rem; }
@@ -255,7 +278,7 @@
   .float-card { display: none; }
 }
 @media (max-width: 900px) {
-  .stream-wrap, .yt-wrap, .community, .dc-grid { grid-template-columns: 1fr; }
+  .stream-wrap, .yt-wrap, .community, .dc-grid, .fame { grid-template-columns: 1fr; }
   .chat { height: 460px; }
   .spidey { width: min(100%, 380px); }
 }

@@ -17,9 +17,12 @@ if (!preg_match('/^[0-9A-Za-z._-]{4,40}$/', $version)) {
 $root = rtrim($argv[2] ?? dirname(__DIR__), '/\\');
 $suffix = '?v=' . $version;
 
+// пути вида assets/…, /assets/… и ./assets/… (404.html работает на любом пути, поэтому там абсолютные)
 $htmlRes = [
-    '/(<script\b[^>]*\bsrc=")(assets\/[^"?#]+\.js)(")/',
-    '/(<link\b[^>]*\bhref=")(assets\/[^"?#]+\.css)(")/',
+    '/(<script\b[^>]*\bsrc=")((?:\.?\/)?assets\/[^"?#]+\.js)(")/',
+    '/(<link\b[^>]*\bhref=")((?:\.?\/)?assets\/[^"?#]+\.css)(")/',
+    '/(\bfrom\s*")((?:\.?\/)?assets\/[^"?#]+\.js)(")/',              // встроенный <script type="module">
+    '/(\bimport\s*\(\s*")((?:\.?\/)?assets\/[^"?#]+\.js)(")/',
 ];
 $jsRes = [
     '/(\bfrom\s*")(\.{1,2}\/[^"?#]+\.js)(")/',        // import … from "./x.js", export … from "./x.js"

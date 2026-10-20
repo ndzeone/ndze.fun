@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 define('NDZE', true);
 define('NDZE_API_DIR', dirname(__DIR__));          // …/public_html/api
-define('NDZE_SCHEMA_VERSION', 2);
+define('NDZE_SCHEMA_VERSION', 3);
 
 ini_set('display_errors', '0');
 ini_set('display_startup_errors', '0');
@@ -52,6 +52,13 @@ require __DIR__ . '/tasks.php';
 require __DIR__ . '/stats.php';
 require __DIR__ . '/discord.php';
 require __DIR__ . '/profile.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/stream.php';
+require __DIR__ . '/achievements.php';
+require __DIR__ . '/battle.php';
+require __DIR__ . '/predictions.php';
+require __DIR__ . '/canvas.php';
+require __DIR__ . '/minecraft.php';
 
 /** config.php как массив или null, если файла нет / он битый. */
 function config(): ?array

@@ -12,6 +12,7 @@ import { api } from "../data/api.js";
 import { checkSignIn, checkSignUp } from "../data/validate.js";
 import { $, $$, esc, avatarHTML, wait, motion, toast } from "./util.js";
 import { initFx } from "./fx.js";
+import { initWebShooter, initKonami } from "./webshoot.js";
 import { setupModal, shake } from "./modal.js";
 
 export const NAV = [
@@ -20,6 +21,8 @@ export const NAV = [
   { id: "repos", href: "repos.html", label: "GitHub" },
   { id: "review", href: "review.html", label: "Оценка работ" },
   { id: "tasks", href: "tasks.html", label: "Задания" },
+  { id: "play", href: "play.html", label: "Движ" },
+  { id: "stream", href: "stream.html", label: "Пульт", adminOnly: true },
   { id: "admin", href: "admin.html", label: "Админка", adminOnly: true },
 ];
 
@@ -324,6 +327,58 @@ function handleOAuthReturn() {
   history.replaceState(history.state, "", url.pathname + url.search + url.hash);
 }
 
+/* ---------- «Паучье чутьё»: идёт ли стрим ---------- */
+// Сервер спрашивает Twitch не чаще раза в минуту (api/lib/settings.php), мы — раз в 90 с, пока вкладка видна.
+// Событие window "ndze:live" (detail — статус) слушают страницы: например, у паука на главной загораются глаза.
+const LIVE_EVERY = 90_000;
+let liveStatus = null;
+export const getLive = () => liveStatus;
+
+function liveBannerHTML(s) {
+  const what = [s.title, s.game].filter(Boolean).join(" · ");
+  return `<a class="live-banner-link" href="https://www.twitch.tv/${esc(s.channel || SITE.twitch.channel)}" target="_blank" rel="noopener">
+      <span class="live-dot" aria-hidden="true"></span><b>${esc(SITE.nick)} в эфире</b>
+      ${what ? `<span class="live-what">${esc(what)}</span>` : ""}
+      <span class="live-go">Смотреть <span aria-hidden="true">↗</span></span>
+    </a>
+    <button class="live-close" type="button" aria-label="Скрыть плашку">✕</button>`;
+}
+
+function startLiveWatch(header) {
+  if (api.mode !== "php" || typeof api.live !== "function") return;
+  const banner = document.createElement("div");
+  banner.className = "live-banner";
+  banner.hidden = true;
+  banner.setAttribute("role", "status");
+  header.after(banner);
+  let dismissed = "";
+  try { dismissed = sessionStorage.getItem("ndze:live-hide") || ""; } catch { /* приватный режим */ }
+
+  banner.addEventListener("click", (e) => {
+    if (!e.target.closest(".live-close")) return;
+    banner.hidden = true;
+    dismissed = String(liveStatus?.title ?? "live"); // скрыли этот эфир; новый стрим (другое название) покажем снова
+    try { sessionStorage.setItem("ndze:live-hide", dismissed); } catch { /* ничего */ }
+  });
+
+  const check = async () => {
+    if (document.hidden) return;
+    let s;
+    try { s = await api.live(); } catch { return; }
+    const was = liveStatus?.live;
+    liveStatus = s;
+    document.documentElement.classList.toggle("is-live", !!s.live);
+    if (s.live) {
+      banner.innerHTML = liveBannerHTML(s);
+      banner.hidden = dismissed === String(s.title ?? "live");
+    } else banner.hidden = true;
+    if (was !== s.live) window.dispatchEvent(new CustomEvent("ndze:live", { detail: s }));
+  };
+  check();
+  setInterval(check, LIVE_EVERY);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+}
+
 /* ---------- Монтирование ---------- */
 export async function mountLayout(page) {
   pageId = page;
@@ -388,5 +443,8 @@ export async function mountLayout(page) {
   renderNav();
   renderUserSlot();
   initFx();
+  initWebShooter(); // зажми мышь — выстрел паутиной
+  initKonami();     // ↑↑↓↓←→←→BA — Питер пролетает через экран
+  startLiveWatch(header);
   return user;
 }
