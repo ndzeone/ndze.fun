@@ -1,0 +1,323 @@
+/* =========================================================
+   interactive.css — опросы, розыгрыши, бинго, квиз, тир-листы (вкладки «Движ», пульт, оверлеи OBS)
+   Все классы с префиксом ix-. Пиксельный стиль: зубчатые рамки (box-shadow), жёсткие тени, steps-анимации.
+   ========================================================= */
+
+.ix { --ix-c: var(--lime); --ix-px: 4px; display: grid; gap: 18px; }
+.ix [hidden] { display: none !important; }
+
+/* ---------- Пиксельная рамка и кнопки ---------- */
+.ix-px {
+  border-radius: 0 !important;
+  box-shadow:
+    0 calc(var(--ix-px) * -1) 0 0 var(--ix-c), 0 var(--ix-px) 0 0 var(--ix-c),
+    calc(var(--ix-px) * -1) 0 0 0 var(--ix-c), var(--ix-px) 0 0 0 var(--ix-c),
+    calc(var(--ix-px) * 2) calc(var(--ix-px) * 2) 0 0 rgba(0, 0, 0, .55);
+  margin: var(--ix-px);
+}
+.ix-pbtn {
+  --ix-c: #2f8a12;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 20px; border: 0; background: var(--lime); color: var(--black); cursor: pointer;
+  font: 700 1rem var(--pixel); text-transform: uppercase; letter-spacing: .04em;
+  transition: transform .12s steps(2), filter .2s;
+}
+.ix-pbtn:not(:disabled):hover { filter: brightness(1.1); transform: translate(-2px, -2px); }
+.ix-pbtn:not(:disabled):active { transform: translate(3px, 3px); box-shadow: none; }
+.ix-pbtn:disabled { filter: grayscale(.9) brightness(.6); cursor: not-allowed; }
+.ix-pbtn:focus-visible { outline: 3px dashed var(--white); outline-offset: 8px; }
+.ix-pbtn.is-ghost { --ix-c: var(--line-strong); background: rgba(248, 248, 248, .06); color: var(--text); }
+.ix-pbtn.is-red { --ix-c: #9c1d28; background: #ff3b4a; color: var(--white); }
+.ix-pbtn.is-gold { --ix-c: #a77b12; background: #ffd166; }
+.ix-pbtn.is-sm { padding: 7px 12px; font-size: .82rem; }
+.ix-pbtn .spinner { display: none; }
+.ix-pbtn.is-loading > :not(.spinner) { visibility: hidden; }
+.ix-pbtn.is-loading .spinner { display: block; position: absolute; }
+
+/* ---------- Шапка вкладки ---------- */
+.ix-hero {
+  position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 22px; padding: 22px 24px; overflow: hidden;
+  border-radius: var(--r);
+}
+.ix-hero::after {
+  content: ""; position: absolute; inset: auto -10% -60% auto; width: 260px; height: 260px; pointer-events: none;
+  background: radial-gradient(circle, rgba(93, 214, 44, .22), transparent 65%);
+}
+.ix-hero-icon {
+  --ix-c: rgba(93, 214, 44, .7);
+  flex: none; width: 64px; height: 64px; display: grid; place-items: center; font-size: 2rem; background: rgba(93, 214, 44, .12);
+  animation: ixBob 2.4s steps(4) infinite;
+}
+@keyframes ixBob { 50% { transform: translateY(-4px); } }
+.ix-hero-text { flex: 1 1 260px; min-width: 0; }
+.ix-hero h2 { font-size: clamp(1.5rem, 4vw, 2.1rem); margin-bottom: 6px; }
+.ix-hero p { color: var(--muted); max-width: 64ch; }
+.ix-hero-side { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; position: relative; z-index: 1; }
+
+.ix-card { padding: 20px 22px; border-radius: var(--r); display: grid; gap: 14px; align-content: start; min-width: 0; }
+.ix-card h3, .ix-h3 { font: 700 1.15rem var(--pixel); text-transform: uppercase; overflow-wrap: anywhere; }
+.ix-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--faint); font-size: .85rem; }
+.ix-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 16px; align-items: start; }
+.ix-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+.ix-sub { font: 700 .95rem var(--pixel); text-transform: uppercase; color: var(--muted); letter-spacing: .05em; }
+.ix-note { color: var(--faint); font-size: .88rem; }
+.ix-login { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 16px; border: 1px dashed var(--line-strong); border-radius: var(--r-sm); color: var(--muted); }
+.ix-login p { flex: 1 1 200px; }
+.ix-mono { font-family: var(--mono); font-size: .8rem; overflow-wrap: anywhere; word-break: break-all; }
+
+/* ---------- Опросы ---------- */
+.ix-poll h3 { font-size: 1.25rem; }
+.ix-opts { list-style: none; padding: 0; display: grid; gap: 10px; }
+.ix-opt {
+  position: relative; width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 14px; overflow: hidden; text-align: left;
+  border: 2px solid var(--line-strong); border-radius: 0; background: rgba(248, 248, 248, .04); color: var(--text); font: inherit;
+}
+button.ix-opt { cursor: pointer; transition: border-color .2s, transform .12s steps(2); }
+button.ix-opt:not(:disabled):hover { border-color: var(--lime); transform: translateX(3px); }
+button.ix-opt:focus-visible { outline: 3px dashed var(--lime); outline-offset: 3px; }
+.ix-opt.is-mine { border-color: var(--lime); box-shadow: 4px 4px 0 rgba(93, 214, 44, .35); }
+.ix-opt.is-top { border-color: #ffd166; }
+.ix-bar {
+  position: absolute; inset: 0 auto 0 0; width: var(--w, 0%);
+  background: repeating-linear-gradient(90deg, rgba(93, 214, 44, .32) 0 10px, rgba(93, 214, 44, .22) 10px 12px);
+  transition: width .9s steps(12);
+}
+.ix-anim .ix-bar { animation: ixGrow 1s steps(12) both; }
+@keyframes ixGrow { from { width: 0; } }
+.ix-opt.is-top .ix-bar { background: repeating-linear-gradient(90deg, rgba(255, 209, 102, .35) 0 10px, rgba(255, 209, 102, .22) 10px 12px); }
+.ix-opt-text, .ix-opt-num { position: relative; }
+.ix-opt-text { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+.ix-opt-num { flex: none; font: 700 1rem var(--pixel); }
+.ix-opt-num small { color: var(--faint); font: 600 .75rem var(--mono); margin-left: 6px; }
+.ix-check { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 8px; background: var(--lime); color: var(--black); font-size: .8rem; vertical-align: -4px; }
+
+/* ---------- Розыгрыши ---------- */
+.ix-gw-prize { display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(255, 209, 102, .08); border: 2px dashed rgba(255, 209, 102, .5); }
+.ix-gw-prize span { font-size: 2rem; }
+.ix-gw-prize b { font: 700 1.2rem var(--pixel); color: #ffd166; text-transform: uppercase; overflow-wrap: anywhere; }
+.ix-gw-count { display: flex; align-items: baseline; gap: 8px; }
+.ix-gw-count b { font: 700 2.2rem/1 var(--pixel); color: var(--lime); }
+.ix-gw-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ix-hash { display: grid; gap: 4px; padding: 10px 12px; background: rgba(0, 0, 0, .35); border-left: 4px solid var(--lime); }
+.ix-hash > span { color: var(--faint); font-size: .78rem; }
+.ix-winner { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: rgba(93, 214, 44, .1); border: 2px solid var(--lime); }
+.ix-winner b { font: 700 1.3rem var(--pixel); text-transform: uppercase; color: var(--lime); overflow-wrap: anywhere; }
+.ix-winner small { display: block; color: var(--faint); }
+.ix-verify { display: grid; gap: 10px; padding: 14px; background: rgba(0, 0, 0, .3); border: 1px solid var(--line); }
+.ix-steps { list-style: none; padding: 0; display: grid; gap: 6px; font-size: .9rem; }
+.ix-steps li { display: flex; gap: 8px; align-items: flex-start; }
+.ix-steps li > span:first-child { flex: none; width: 22px; text-align: center; }
+.ix-steps .ok { color: var(--lime); }
+.ix-steps .bad { color: #ff3b4a; }
+.ix-people { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow: auto; counter-reset: ixp; }
+.ix-people li { counter-increment: ixp; padding: 4px 9px; background: rgba(248, 248, 248, .06); font-size: .82rem; }
+.ix-people li::before { content: counter(ixp) ". "; color: var(--faint); font-family: var(--mono); font-size: .72rem; }
+.ix-people li.is-win { background: var(--lime); color: var(--black); font-weight: 800; }
+.ix-people li.is-win::before { color: var(--black); }
+
+/* ---------- Бинго ---------- */
+.ix-bingo-wrap { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.ix-board {
+  --ix-c: rgba(93, 214, 44, .65);
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 6px; background: #121212;
+}
+.ix-cell {
+  position: relative; aspect-ratio: 1; display: grid; place-items: center; padding: 4px; overflow: hidden;
+  background: #232323; border: 2px solid #2d2d2d; color: var(--muted); text-align: center;
+  font-size: clamp(.55rem, 1.6vw, .78rem); line-height: 1.15; font-weight: 700; overflow-wrap: break-word; hyphens: auto;
+}
+.ix-cell.is-on { background: #1d3a11; border-color: var(--lime); color: var(--white); }
+.ix-cell.is-on::after {
+  content: ""; position: absolute; inset: 8%; border: 2px dashed rgba(93, 214, 44, .45); border-radius: 50%; pointer-events: none;
+}
+.ix-cell.is-new::after { animation: ixStamp .6s steps(4); }
+@keyframes ixStamp { from { transform: scale(2.2) rotate(-25deg); opacity: 0; } }
+.ix-cell.is-line { background: var(--lime); color: var(--black); border-color: #b8ff8f; }
+.ix-cell.is-line::after { border-color: rgba(15, 15, 15, .55); }
+.ix-cell.is-free { background: #0f0f0f; border-color: var(--lime); color: var(--lime); font: 700 .8rem var(--pixel); }
+.ix-cell.is-free span { font-size: 1.6rem; display: block; }
+.ix-bingo-btn { width: 100%; padding: 16px; font-size: 1.5rem; }
+.ix-bingo-btn:not(:disabled) { animation: ixPulse 1s steps(2) infinite; }
+@keyframes ixPulse { 50% { filter: brightness(1.25); } }
+.ix-events { list-style: none; padding: 0; display: grid; gap: 4px; max-height: 360px; overflow: auto; }
+.ix-events li { display: flex; gap: 8px; align-items: baseline; padding: 6px 8px; background: rgba(248, 248, 248, .03); font-size: .88rem; color: var(--faint); }
+.ix-events li.is-on { color: var(--text); background: rgba(93, 214, 44, .1); }
+.ix-events li.is-on::before { content: "✔"; color: var(--lime); }
+.ix-events li:not(.is-on)::before { content: "·"; }
+.ix-winners { list-style: none; padding: 0; display: grid; gap: 6px; }
+.ix-winners li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: rgba(248, 248, 248, .04); }
+.ix-winners li b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ix-place { flex: none; width: 30px; font: 700 1.05rem var(--pixel); color: var(--lime); text-align: center; }
+.ix-prize { font: 700 .85rem var(--pixel); color: #ffd166; }
+
+/* ---------- Квиз ---------- */
+.ix-quiz-stage { position: relative; display: grid; gap: 18px; padding: 26px; border-radius: var(--r); min-height: 360px; align-content: start; }
+.ix-quiz-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; font: 700 .9rem var(--pixel); color: var(--muted); text-transform: uppercase; }
+.ix-timer { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; height: 16px; }
+.ix-timer i { background: var(--lime); transition: background-color .2s steps(1); }
+.ix-timer i.off { background: rgba(248, 248, 248, .08); }
+.ix-timer.is-low i:not(.off) { background: #ff3b4a; animation: ixPulse .5s steps(2) infinite; }
+.ix-question { font: 700 clamp(1.25rem, 3.4vw, 1.8rem)/1.25 var(--pixel); text-transform: none; overflow-wrap: anywhere; }
+.ix-qopts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ix-qopt {
+  --ix-c: var(--line-strong);
+  display: flex; align-items: center; gap: 12px; padding: 16px; text-align: left; cursor: pointer;
+  background: rgba(248, 248, 248, .05); color: var(--text); border: 0; font: 700 1rem var(--font);
+  transition: transform .12s steps(2), background-color .2s;
+}
+.ix-qopt:not(:disabled):hover { --ix-c: var(--lime); transform: translate(-2px, -2px); }
+.ix-qopt:focus-visible { outline: 3px dashed var(--lime); outline-offset: 8px; }
+.ix-qopt.is-picked { --ix-c: var(--lime); background: rgba(93, 214, 44, .2); }
+.ix-qopt:disabled { cursor: default; }
+.ix-qkey { flex: none; width: 30px; height: 30px; display: grid; place-items: center; background: var(--lime); color: var(--black); font: 700 1rem var(--pixel); }
+.ix-qopt span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.ix-score { display: grid; justify-items: center; gap: 10px; padding: 18px 0; text-align: center; }
+.ix-score b { font: 700 clamp(3rem, 12vw, 5.5rem)/1 var(--pixel); color: var(--lime); text-shadow: 6px 6px 0 rgba(0, 0, 0, .6); animation: ixPop .6s steps(5); }
+@keyframes ixPop { from { transform: scale(.3); opacity: 0; } }
+.ix-score small { color: var(--muted); }
+.ix-review { list-style: none; padding: 0; display: grid; gap: 10px; counter-reset: ixq; }
+.ix-review > li { counter-increment: ixq; display: grid; gap: 6px; padding: 12px 14px; background: rgba(248, 248, 248, .04); border-left: 4px solid var(--line-strong); }
+.ix-review > li.ok { border-left-color: var(--lime); }
+.ix-review > li.bad { border-left-color: #ff3b4a; }
+.ix-review > li > b::before { content: counter(ixq) ". "; color: var(--faint); }
+.ix-review .ix-ans { display: flex; flex-wrap: wrap; gap: 6px; font-size: .85rem; }
+.ix-review .ix-ans span { padding: 3px 8px; background: rgba(248, 248, 248, .05); color: var(--faint); }
+.ix-review .ix-ans .is-correct { background: rgba(93, 214, 44, .18); color: var(--lime); font-weight: 700; }
+.ix-review .ix-ans .is-wrong { background: rgba(255, 59, 74, .18); color: #ff8a94; text-decoration: line-through; }
+.ix-lb { list-style: none; padding: 0; display: grid; gap: 6px; }
+.ix-lb li { display: grid; grid-template-columns: 30px auto 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; background: rgba(248, 248, 248, .04); }
+.ix-lb li.is-me { outline: 2px solid var(--lime); }
+.ix-lb b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ix-lb small { font: 600 .8rem var(--mono); color: var(--faint); text-align: right; }
+.ix-lb small em { font: 700 .95rem var(--pixel); color: var(--lime); font-style: normal; margin-right: 6px; }
+
+/* ---------- Тир-листы ---------- */
+.ix-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.ix-tl-wrap { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.ix-tiers { display: grid; gap: 4px; }
+.ix-tier { display: grid; grid-template-columns: 56px 1fr; min-height: 58px; background: #161616; }
+.ix-tier-label {
+  display: grid; place-items: center; font: 700 1.6rem var(--pixel); color: #111; background: var(--t);
+  box-shadow: inset -4px -4px 0 rgba(0, 0, 0, .25), inset 4px 4px 0 rgba(255, 255, 255, .25);
+}
+.ix-tier[data-tier="S"] { --t: #ff3b4a; }
+.ix-tier[data-tier="A"] { --t: #ffb02e; }
+.ix-tier[data-tier="B"] { --t: #ffd166; }
+.ix-tier[data-tier="C"] { --t: #5dd62c; }
+.ix-tier[data-tier="D"] { --t: #4aa8ff; }
+.ix-zone { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; padding: 6px; min-height: 58px; transition: background-color .15s; }
+.ix-zone.is-over { background: rgba(93, 214, 44, .14); box-shadow: inset 0 0 0 2px var(--lime); }
+.ix-pool { padding: 10px; border: 2px dashed var(--line-strong); min-height: 70px; }
+.ix-pool:empty::before { content: "Все предметы расставлены ✔"; color: var(--lime); font-size: .85rem; padding: 6px; }
+.ix-token {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 7px 10px; border: 0; cursor: grab;
+  background: #2a2a2a; color: var(--text); font: 700 .85rem var(--font); touch-action: none; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 -2px 0 #3a3a3a, 0 2px 0 #111, -2px 0 0 #3a3a3a, 2px 0 0 #111;
+}
+.ix-token span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ix-token:hover { background: #343434; }
+.ix-token:focus-visible { outline: 3px dashed var(--lime); outline-offset: 2px; }
+.ix-token.is-static { cursor: default; touch-action: auto; }
+.ix-token.is-dragging { opacity: .3; }
+.ix-ghost { position: fixed; z-index: 1000; pointer-events: none; transform: translate(-50%, -50%) rotate(-4deg) scale(1.08); box-shadow: 6px 6px 0 rgba(0, 0, 0, .5); }
+.ix-token small { color: var(--faint); font: 600 .7rem var(--mono); }
+.ix-menu {
+  position: absolute; z-index: 60; display: flex; gap: 4px; padding: 6px; background: #0f0f0f; border: 2px solid var(--lime);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, .6);
+}
+.ix-menu button { width: 36px; height: 36px; border: 0; cursor: pointer; font: 700 1rem var(--pixel); color: #111; background: var(--t, #888); }
+.ix-menu button:focus-visible { outline: 3px dashed var(--white); outline-offset: 1px; }
+.ix-menu button[data-tier="S"] { --t: #ff3b4a; }
+.ix-menu button[data-tier="A"] { --t: #ffb02e; }
+.ix-menu button[data-tier="B"] { --t: #ffd166; }
+.ix-menu button[data-tier="C"] { --t: #5dd62c; }
+.ix-menu button[data-tier="D"] { --t: #4aa8ff; }
+.ix-menu button[data-tier=""] { --t: #555; color: var(--white); width: auto; padding: 0 10px; font-size: .8rem; }
+.ix-tl-save { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+/* ---------- Пульт ---------- */
+.ix-admin { display: grid; gap: 16px; }
+.ix-atabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.ix-form { display: grid; gap: 4px; padding: 20px; border-radius: var(--r); }
+.ix-form .field { margin-bottom: 4px; }
+.ix-form .field > label { max-width: calc(100% - 30px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ix-form .field > input:not(:placeholder-shown) + label, .ix-form .field > input:focus + label { max-width: calc((100% - 30px) / .74); }
+.ix-form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 8px 10px; }
+.ix-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 6px; }
+.ix-qb { display: grid; gap: 6px; padding: 14px; border: 1px dashed var(--line-strong); border-radius: var(--r-sm); }
+.ix-qb-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ix-qb-opt { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; }
+.ix-qb-opt .field { margin: 0; }
+.ix-qb-opt input[type="radio"] { width: 20px; height: 20px; accent-color: var(--lime); }
+.ix-alist { display: grid; gap: 12px; }
+.ix-arow { display: grid; gap: 10px; padding: 16px 18px; border-radius: var(--r-sm); }
+.ix-arow-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.ix-arow-head b { flex: 1 1 200px; min-width: 0; font-weight: 800; overflow-wrap: anywhere; }
+.ix-arow-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.ix-marks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 6px; }
+.ix-mark {
+  padding: 8px 10px; border: 1px solid var(--line); background: rgba(248, 248, 248, .04); color: var(--muted); text-align: left;
+  font: 600 .82rem var(--font); cursor: pointer; overflow-wrap: anywhere;
+}
+.ix-mark[aria-pressed="true"] { background: var(--lime); color: var(--black); border-color: transparent; font-weight: 800; }
+.ix-mark:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+.ix-ovlinks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.ix-ovlinks > div { display: grid; gap: 4px; padding: 14px; border-radius: var(--r-sm); }
+.ix-ovlinks small { color: var(--faint); }
+.ix-counter { font: 600 .8rem var(--mono); color: var(--faint); }
+.ix-counter.ok { color: var(--lime); }
+
+@media (max-width: 960px) {
+  .ix-cols, .ix-bingo-wrap, .ix-tl-wrap { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .ix-hero { padding: 18px; }
+  .ix-hero-icon { width: 48px; height: 48px; font-size: 1.5rem; }
+  .ix-card { padding: 16px; }
+  .ix-qopts { grid-template-columns: 1fr; }
+  .ix-quiz-stage { padding: 18px; }
+  .ix-board { gap: 3px; padding: 4px; }
+  .ix-cell { font-size: .56rem; padding: 2px; border-width: 1px; }
+  .ix-tier { grid-template-columns: 44px 1fr; }
+  .ix-tier-label { font-size: 1.3rem; }
+}
+
+/* ---------- Оверлеи OBS (overlay.html: свой минимальный CSS, поэтому значения явные) ---------- */
+.ix-ov { position: absolute; left: 24px; top: 24px; width: min(720px, calc(100vw - 48px)); display: grid; gap: 12px; }
+.ix-ov.is-in { animation: ixOvIn .6s steps(6); }
+@keyframes ixOvIn { from { opacity: 0; transform: translateY(24px); } }
+.ix-ov-title { font: 700 34px/1.1 var(--pixel); text-transform: uppercase; overflow-wrap: anywhere; }
+.ix-ov-sub { font-size: 18px; color: rgba(248, 248, 248, .75); }
+.ix-ov-opts { list-style: none; padding: 0; display: grid; gap: 10px; }
+.ix-ov-opt { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 16px; overflow: hidden; background: rgba(248, 248, 248, .06); border: 2px solid rgba(248, 248, 248, .15); }
+.ix-ov-opt .ix-bar { transition: width 1.2s steps(16); }
+.ix-ov-opt.is-top { border-color: #ffd166; }
+.ix-ov-opt.is-top .ix-bar { background: repeating-linear-gradient(90deg, rgba(255, 209, 102, .45) 0 12px, rgba(255, 209, 102, .3) 12px 14px); }
+.ix-ov-opt b { position: relative; flex: 1; min-width: 0; font-size: 24px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ix-ov-opt span { position: relative; font: 700 28px var(--pixel); color: #5dd62c; }
+.ix-ov-opt.is-top span { color: #ffd166; }
+.ix-ov-foot { display: flex; justify-content: space-between; gap: 12px; font: 700 16px var(--pixel); color: rgba(248, 248, 248, .7); text-transform: uppercase; }
+.ix-ov-big { font: 700 72px/1 var(--pixel); color: #5dd62c; text-shadow: 6px 6px 0 rgba(0, 0, 0, .6); }
+.ix-ov-prize { font: 700 28px var(--pixel); color: #ffd166; text-transform: uppercase; overflow-wrap: anywhere; }
+.ix-roulette { position: relative; height: 76px; overflow: hidden; background: #0b0b0b; border: 3px solid #5dd62c; }
+.ix-roulette::before, .ix-roulette::after { content: ""; position: absolute; left: 50%; z-index: 2; translate: -50% 0; border: 12px solid transparent; }
+.ix-roulette::before { top: 0; border-top-color: #ffd166; }
+.ix-roulette::after { bottom: 0; border-bottom-color: #ffd166; }
+.ix-strip { position: absolute; left: 0; top: 0; height: 100%; display: flex; will-change: transform; }
+.ix-strip span {
+  flex: none; width: 200px; height: 100%; display: grid; place-items: center; padding: 0 8px; border-right: 2px solid #1d1d1d;
+  font: 700 22px var(--pixel); text-transform: uppercase; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: rgba(248, 248, 248, .85);
+}
+.ix-strip span.is-win { background: #5dd62c; color: #0f0f0f; }
+.ix-ov-win { padding: 14px 20px; background: #ffd166; color: #0f0f0f; text-align: center; animation: ixPop .6s steps(5); }
+.ix-ov-win small { display: block; font: 700 16px var(--pixel); text-transform: uppercase; }
+.ix-ov-win b { font: 700 40px var(--pixel); text-transform: uppercase; overflow-wrap: anywhere; }
+.ix-ov-events { list-style: none; padding: 0; display: grid; gap: 6px; }
+.ix-ov-events li { display: flex; gap: 10px; align-items: center; padding: 6px 12px; background: rgba(93, 214, 44, .14); font-size: 20px; }
+.ix-ov-events li::before { content: "✔"; color: #5dd62c; font-weight: 800; }
+.ix-ov-events li.is-new { animation: ixOvIn .6s steps(6); background: rgba(93, 214, 44, .35); }
+.ix-ov-winners { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.ix-ov-winners li { padding: 6px 12px; background: #ffd166; color: #0f0f0f; font: 700 18px var(--pixel); text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) {
+  .ix *, .ix-ov, .ix-ov * { animation: none !important; transition: none !important; }
+}

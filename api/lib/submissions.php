@@ -229,6 +229,9 @@ function route_submission_comment(): array
         $pdo->rollBack();
         throw $ex;
     }
+    if ($s['user_id'] !== $me['id']) {
+        notify($s['user_id'], 'comment', "{$me['nick']} оставил совет к работе «{$s['title']}»", 'review.html#sub=' . $s['id']);
+    }
     return comment_view([
         'id' => $cid, 'user_id' => $me['id'], 'nick' => $me['nick'], 'email' => $me['email'],
         'discord_id' => $me['discord_id'], 'avatar_file' => $me['avatar_file'] ?? null, 'text' => $text, 'created_at' => $t,
@@ -254,7 +257,17 @@ function route_submission_review(): array
     }
     $params[] = $s['id'];
     q('UPDATE submissions SET ' . implode(', ', $sets) . ' WHERE id = ?', $params);
-    return submission_get_view($s['id']);
+    $view = submission_get_view($s['id']);
+    $what = [];
+    if (array_key_exists('rating', $b) && $b['rating'] !== null && (int) $b['rating'] !== (int) $s['rating']) $what[] = "оценка {$b['rating']}/10";
+    if (array_key_exists('status', $b) && $b['status'] !== $s['status']) {
+        $what[] = ['pending' => 'ждёт оценки', 'revision' => 'нужна доработка', 'ideal' => 'ИДЕАЛ 💎', 'rejected' => 'отклонено'][$b['status']] ?? $b['status'];
+    }
+    if ($what) {
+        notify($s['user_id'], 'review', "Работа «{$s['title']}»: " . implode(', ', $what), 'review.html#sub=' . $s['id']);
+        event_emit('submission.reviewed', ['submission' => $view]);
+    }
+    return $view;
 }
 
 function route_submission_delete(): ?array

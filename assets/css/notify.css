@@ -1,0 +1,170 @@
+/* =========================================================
+   notify.css — колокольчик в шапке, карточка push в кабинете,
+   вкладка «Push · Discord-вебхук» в пульте. Префикс классов: nt-
+   ========================================================= */
+
+/* ---------- Кнопка-колокольчик ---------- */
+.nt-bell { position: relative; display: flex; }
+.nt-bell-btn {
+  position: relative; display: grid; place-items: center; width: 38px; height: 38px; padding: 0;
+  border-radius: 12px; border: 1px solid var(--line); background: var(--glass); color: var(--muted);
+  box-shadow: var(--glass-hi); cursor: pointer; transition: color .2s, border-color .2s, background-color .2s;
+}
+.nt-bell-btn:hover, .nt-bell-btn[aria-expanded="true"] { color: var(--lime); border-color: rgba(93, 214, 44, .55); }
+.nt-bell-btn[aria-expanded="true"] { background: rgba(93, 214, 44, .12); }
+.nt-bell-btn svg { width: 18px; height: 18px; shape-rendering: crispEdges; }
+.nt-bell-btn.has-unread { color: var(--text); }
+.nt-bell-btn.is-ringing svg { animation: ntRing .9s var(--ease); transform-origin: 50% 8%; }
+@keyframes ntRing {
+  15% { transform: rotate(16deg); } 30% { transform: rotate(-14deg); } 45% { transform: rotate(10deg); }
+  60% { transform: rotate(-6deg); } 75% { transform: rotate(3deg); }
+}
+.nt-count {
+  position: absolute; top: -6px; right: -6px; min-width: 19px; height: 19px; padding: 0 5px;
+  display: grid; place-items: center; border-radius: var(--pill); border: 2px solid var(--black);
+  background: #ff3b4a; color: #fff; font: 700 .68rem/1 var(--pixel); box-shadow: 0 0 12px rgba(255, 59, 74, .65);
+}
+.nt-count[hidden] { display: none; }
+
+/* ---------- Выпадающая панель ---------- */
+.nt-panel {
+  position: absolute; top: calc(100% + 12px); right: -8px; z-index: 40;
+  width: min(390px, calc(100vw - 32px)); max-height: min(560px, calc(100dvh - var(--header-h) - 24px));
+  display: flex; flex-direction: column; overflow: hidden; padding: 0;
+  background: radial-gradient(120% 50% at 100% 0%, rgba(93, 214, 44, .08), transparent 60%), #151515; /* непрозрачный: текст страницы не должен просвечивать */
+  border-color: var(--line-strong);
+  backdrop-filter: none; -webkit-backdrop-filter: none; /* внутри шапки с backdrop-filter вложенный blur «просвечивает» */
+  box-shadow: var(--glass-hi), 0 30px 70px -24px rgba(0, 0, 0, .9), 0 0 0 1px rgba(93, 214, 44, .08);
+  animation: ntIn .28s var(--ease);
+}
+.nt-panel[hidden] { display: none; }
+.nt-panel:focus { outline: none; }
+.nt-panel::before { /* «паутинка» сверху — лаймовая полоска */
+  content: ""; position: absolute; inset: 0 0 auto; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--lime), transparent); opacity: .7;
+}
+@keyframes ntIn { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+.nt-head {
+  display: flex; align-items: center; gap: 8px; padding: 14px 14px 12px 18px; border-bottom: 1px solid var(--line);
+}
+.nt-title { flex: 1; font: 700 1rem var(--pixel); text-transform: uppercase; letter-spacing: .04em; }
+.nt-title small { margin-left: 6px; color: var(--lime); font: inherit; }
+.nt-readall {
+  padding: 6px 10px; border: 0; border-radius: var(--pill); background: none; color: var(--lime);
+  font: 700 .82rem var(--font); cursor: pointer;
+}
+.nt-readall:hover:not(:disabled) { background: rgba(93, 214, 44, .1); }
+.nt-readall:disabled { color: var(--faint); cursor: default; }
+.nt-close {
+  display: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line);
+  background: rgba(248, 248, 248, .05); color: var(--muted); cursor: pointer;
+}
+.nt-list { list-style: none; margin: 0; padding: 6px; overflow-y: auto; overscroll-behavior: contain; }
+.nt-item {
+  position: relative; display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 11px 30px 11px 10px;
+  border: 0; border-radius: var(--r-sm); background: none; color: var(--muted); font: inherit; text-align: left;
+  cursor: pointer; transition: background-color .2s, color .2s;
+}
+.nt-item:hover, .nt-item:focus-visible { background: rgba(248, 248, 248, .06); color: var(--text); }
+.nt-item.is-unread { color: var(--text); }
+.nt-item.is-unread::after {
+  content: ""; position: absolute; right: 12px; top: 50%; width: 8px; height: 8px; margin-top: -4px;
+  border-radius: 2px; background: var(--lime); box-shadow: 0 0 10px var(--lime);
+}
+.nt-ico {
+  flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(248, 248, 248, .06); border: 1px solid var(--line); font-size: 1.05rem;
+}
+.nt-item.is-unread .nt-ico { background: rgba(93, 214, 44, .12); border-color: rgba(93, 214, 44, .35); }
+.nt-body { display: grid; gap: 3px; min-width: 0; }
+.nt-text { font-size: .9rem; line-height: 1.35; overflow-wrap: anywhere; }
+.nt-time { color: var(--faint); font-size: .76rem; }
+.nt-empty { display: grid; justify-items: center; gap: 8px; padding: 34px 20px 38px; color: var(--muted); text-align: center; font-size: .92rem; }
+.nt-empty b { font-size: 2rem; }
+.nt-skel { height: 58px; min-height: 0; margin: 4px; border-radius: var(--r-sm); }
+.nt-foot { padding: 10px 18px 12px; border-top: 1px solid var(--line); color: var(--faint); font-size: .78rem; text-align: center; }
+.nt-foot a { color: var(--lime); }
+
+@media (max-width: 640px) {
+  /* на телефоне — лист во всю ширину под шапкой (шапка с backdrop-filter: fixed считается от неё) */
+  .nt-bell { position: static; }
+  .nt-panel {
+    position: fixed; top: var(--header-h); left: 0; right: 0; width: auto;
+    max-height: calc(100dvh - var(--header-h)); border-radius: 0 0 var(--r) var(--r); border-width: 0 0 1px;
+    animation-name: ntSheet;
+  }
+  .nt-close { display: grid; place-items: center; }
+  .nt-item { padding-block: 13px; }
+}
+@keyframes ntSheet { from { opacity: 0; transform: translateY(-14px); } }
+
+/* ---------- Карточка push в кабинете ---------- */
+.nt-push { display: grid; align-content: start; gap: 14px; }
+.nt-push h3 { margin-bottom: 0; }
+.nt-push > p.muted { margin: 0; }
+.nt-push-state { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-size: .88rem; color: var(--muted); }
+.nt-topics { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.nt-topics legend { margin-bottom: 8px; font-size: .82rem; color: var(--faint); }
+.nt-push-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.nt-push-note { margin: 0; font-size: .8rem; color: var(--faint); }
+
+/* Переключатель (чекбокс в виде пиксельного тумблера) */
+.nt-switch {
+  position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r-sm);
+  border: 1px solid var(--line); background: rgba(248, 248, 248, .04); cursor: pointer; transition: border-color .2s, background-color .2s;
+}
+.nt-switch:hover { border-color: rgba(93, 214, 44, .4); }
+.nt-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.nt-switch-ui {
+  position: relative; flex: none; width: 38px; height: 22px; border-radius: 6px;
+  background: rgba(248, 248, 248, .12); border: 1px solid var(--line-strong); transition: background-color .2s, border-color .2s;
+}
+.nt-switch-ui::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 3px;
+  background: var(--muted); transition: transform .25s var(--ease), background-color .2s;
+}
+.nt-switch input:checked + .nt-switch-ui { background: rgba(93, 214, 44, .25); border-color: var(--lime); }
+.nt-switch input:checked + .nt-switch-ui::after { transform: translateX(16px); background: var(--lime); box-shadow: 0 0 10px var(--lime); }
+.nt-switch input:focus-visible + .nt-switch-ui { outline: 2px solid var(--lime); outline-offset: 3px; }
+.nt-switch input:disabled ~ * { opacity: .55; }
+.nt-switch:has(input:disabled) { cursor: not-allowed; }
+.nt-switch-text { display: grid; gap: 1px; min-width: 0; font-weight: 600; font-size: .92rem; }
+.nt-switch-text small { color: var(--faint); font-weight: 500; font-size: .78rem; }
+
+/* ---------- Пульт: Push · Discord-вебхук ---------- */
+.nt-admin { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.nt-box { display: grid; gap: 14px; padding: 22px; border-radius: var(--r); }
+.nt-box h3 { display: flex; align-items: center; gap: 10px; font: 700 1.15rem var(--pixel); text-transform: uppercase; }
+.nt-box h3 svg { width: 20px; height: 20px; color: #8c96ff; }
+.nt-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.nt-stat {
+  display: grid; gap: 2px; padding: 12px 10px; border-radius: var(--r-sm); text-align: center;
+  background: rgba(248, 248, 248, .04); border: 1px solid var(--line);
+}
+.nt-stat b { font: 700 1.6rem/1 var(--pixel); color: var(--lime); }
+.nt-stat span { color: var(--faint); font-size: .76rem; }
+.nt-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: .88rem; color: var(--muted); }
+.nt-line b { color: var(--text); font-weight: 700; }
+.nt-err { margin: 0; padding: 10px 12px; border-radius: 10px; background: rgba(255, 93, 93, .08); border: 1px solid rgba(255, 93, 93, .3); color: #ffb3b3; font-size: .84rem; overflow-wrap: anywhere; }
+.nt-mono { font-family: var(--mono); font-size: .82rem; overflow-wrap: anywhere; color: var(--text); }
+.nt-note { margin: 0; color: var(--faint); font-size: .8rem; }
+.nt-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.nt-hook-form { display: grid; gap: 10px; }
+.nt-hook-form .field { margin: 0; }
+.nt-events { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; border: 0; }
+.nt-events legend { margin-bottom: 8px; font-size: .82rem; color: var(--faint); }
+.nt-events .nt-switch { padding: 8px 10px; }
+.nt-events .nt-switch-text { font-size: .86rem; }
+
+@media (max-width: 900px) {
+  .nt-admin { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .nt-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nt-events { grid-template-columns: 1fr; }
+  .nt-box { padding: 18px; }
+}
+
+.nt-box-skel { min-height: 320px; }
+.nt-sub { margin-bottom: 6px; }
+.nt-wide { grid-column: 1 / -1; }

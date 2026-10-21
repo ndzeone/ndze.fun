@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 define('NDZE', true);
 define('NDZE_API_DIR', dirname(__DIR__));          // …/public_html/api
-define('NDZE_SCHEMA_VERSION', 4);
+define('NDZE_SCHEMA_VERSION', 5);
 
 ini_set('display_errors', '0');
 ini_set('display_startup_errors', '0');
@@ -42,6 +42,7 @@ register_shutdown_function(static function (): void {
 });
 
 require __DIR__ . '/http.php';
+require __DIR__ . '/platform.php';
 require __DIR__ . '/db.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/validate.php';
@@ -60,6 +61,8 @@ require __DIR__ . '/predictions.php';
 require __DIR__ . '/canvas.php';
 require __DIR__ . '/minecraft.php';
 require __DIR__ . '/forum.php';
+// модули фич: каждый файл сам регистрирует маршруты, метрики, значки и слушатели событий (см. platform.php)
+foreach (glob(__DIR__ . '/features/*.php') ?: [] as $feature) require $feature;
 
 /** config.php как массив или null, если файла нет / он битый. */
 function config(): ?array

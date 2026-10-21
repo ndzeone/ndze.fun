@@ -42,6 +42,10 @@ AddType text/javascript .js
   <FilesMatch "\.(css|js|svg|png|jpg|jpeg|webp|gif|woff2)$">
     Header set Cache-Control "public, max-age=604800"
   </FilesMatch>
+  # service worker браузер обязан перепроверять, иначе обновления push-уведомлений застрянут на неделю
+  <Files "sw.js">
+    Header set Cache-Control "no-cache"
+  </Files>
 </IfModule>
 
 # Несуществующая страница → 404.html с мини-игрой (код ответа остаётся 404). Все ссылки внутри 404.html

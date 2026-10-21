@@ -66,6 +66,7 @@
 .fr-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: var(--faint); font-size: .8rem; }
 .fr-sec-tag, .fr-proj { padding: 1px 8px; border-radius: var(--pill); border: 1px solid var(--line); color: var(--muted); }
 .fr-proj { border-color: rgba(93, 214, 44, .35); color: var(--lime); }
+.fr-nick:hover { color: var(--lime); text-decoration: underline; text-underline-offset: 3px; }
 .fr-row-stats { display: flex; gap: 12px; color: var(--muted); font-size: .85rem; white-space: nowrap; }
 .fr-row-last { display: grid; justify-items: end; color: var(--faint); font-size: .78rem; text-align: right; }
 .fr-pager { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 18px; }

@@ -131,6 +131,10 @@ function route_whitelist_update(): array
     $row = $id ? q_one('SELECT * FROM whitelist_requests WHERE id = ?', [$id]) : null;
     if (!$row) throw new ApiError('not_found', 'Заявка не найдена');
     q('UPDATE whitelist_requests SET status = ?, admin_note = ?, updated_at = ? WHERE id = ?', [$status, $note === '' ? null : $note, now_db(), $id]);
+    if ($status !== $row['status'] && $status !== 'pending') {
+        $server = WL_SERVERS[$row['server']] ?? $row['server'];
+        notify($row['user_id'], 'whitelist', $status === 'approved' ? "Заявка в вайтлист $server одобрена — заходи! ⛏" : "Заявка в вайтлист $server отклонена" . ($note !== '' ? ": $note" : ''), 'profile.html#settings');
+    }
     return whitelist_view(q_one('SELECT * FROM whitelist_requests WHERE id = ?', [$id]));
 }
 

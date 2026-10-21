@@ -103,8 +103,8 @@ function is_admin_row(?string $email, ?string $discordId): bool
 
 // Пользователь + файл аватарки из профиля (профиля может не быть). Дальше — WHERE u.<поле> = ?
 const USER_SELECT = 'SELECT u.id, u.nick, u.email, u.discord_id, u.password_hash, u.created_at, p.avatar_file,
-    COALESCE(p.auth_epoch, 0) AS auth_epoch
-  FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id';
+    COALESCE(p.auth_epoch, 0) AS auth_epoch, uc.frame
+  FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id LEFT JOIN user_cosmetics uc ON uc.user_id = u.id';
 
 /** Строка users → User из контракта. */
 function public_user(?array $u): ?array
@@ -116,6 +116,7 @@ function public_user(?array $u): ?array
         'email' => $u['email'],
         'role' => is_admin_row($u['email'], $u['discord_id']) ? 'admin' : 'user',
         'avatarUrl' => avatar_url($u['id'], $u['avatar_file'] ?? null),
+        'frame' => $u['frame'] ?? null, // рамка аватарки (сезоны/уровни), см. features/points.php
         'createdAt' => iso($u['created_at']),
     ];
 }

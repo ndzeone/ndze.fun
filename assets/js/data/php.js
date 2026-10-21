@@ -12,8 +12,8 @@ import {
 const ROOT = new URL("../../../", import.meta.url); // корень сайта (файл лежит в assets/js/data/)
 const API = new URL("api/index.php", ROOT);
 
-/** Запрос к API. Возвращает data или бросает ApiError. */
-async function call(route, { method = "GET", query, body, form } = {}) {
+/** Запрос к API. Возвращает data или бросает ApiError. Экспортируется для модулей фич (через api.js → apiCall). */
+export async function call(route, { method = "GET", query, body, form } = {}) {
   const url = new URL(API);
   url.searchParams.set("r", route);
   for (const [k, v] of Object.entries(query || {})) {
@@ -61,7 +61,7 @@ export function createPhpBackend() {
 
   const setUser = (u) => {
     const changed = (u?.id ?? null) !== (current?.id ?? null) || u?.role !== current?.role
-      || u?.nick !== current?.nick || u?.avatarUrl !== current?.avatarUrl;
+      || u?.nick !== current?.nick || u?.avatarUrl !== current?.avatarUrl || u?.frame !== current?.frame;
     current = u ?? null;
     if (changed) listeners.forEach((cb) => { try { cb(current); } catch (err) { console.error(err); } });
     return current;

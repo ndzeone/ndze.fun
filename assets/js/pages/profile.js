@@ -4,6 +4,7 @@ import { api } from "../data/api.js";
 import { SUB_STATUSES, TASK_STATUSES, GAMES, CATEGORIES, DIFFICULTIES, LIMITS, byId } from "../data/constants.js";
 import { checkNick, checkPasswordChange, checkAvatar } from "../data/validate.js";
 import { initMagnetic } from "../core/fx.js";
+import { mountSlot } from "../modules.js";
 import { $, $$, esc, avatarHTML, plural, timeAgo, formatDate, toast, motion } from "../core/util.js";
 
 const root = $("#profileRoot");
@@ -75,6 +76,7 @@ function render() {
     </div>
     <section class="pf-panel" id="pfPanel" role="tabpanel" aria-labelledby="tab-${tab}">${panelHTML()}</section>`;
   if (motion) $$(".pf-stat-n[data-n]", root).forEach(countUp);
+  if (tab === "settings") mountProfileModules();
 }
 
 function tabCount(id) {
@@ -120,7 +122,7 @@ function heroHTML() {
   return `<section class="pf-hero glass" id="pfHero" aria-labelledby="pfNick">
     <div class="pf-avatar-zone" id="avatarZone">
       <button class="pf-avatar-btn${avatarBusy ? " is-loading" : ""}" type="button" data-act="avatar-pick" aria-label="Сменить аватарку">
-        ${avatarHTML(u.nick, u.avatarUrl, { size: "xl" })}
+        ${avatarHTML(u.nick, u.avatarUrl, { size: "xl", extra: u.frame ? `frame-${u.frame}` : "" })}
         <span class="pf-avatar-overlay" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Сменить</span>
         <span class="spinner light" aria-hidden="true"></span>
       </button>
@@ -186,6 +188,16 @@ function countUp(el) {
   requestAnimationFrame(step);
 }
 
+/* ---------- Модули фич во вкладке «Настройки» (assets/js/profile/*.js) ---------- */
+let modsDestroy = null;
+function mountProfileModules() {
+  modsDestroy?.();
+  modsDestroy = null;
+  const box = $("#pfMods", root);
+  if (!box || !profile) return;
+  mountSlot("profile", box, { user: profile.user, isAdmin: profile.user.role === "admin", profile }).then((d) => { modsDestroy = d; });
+}
+
 /* ---------- Вкладки ---------- */
 function panelHTML() {
   if (tab === "tasks") return tasksHTML();
@@ -205,6 +217,7 @@ function setTab(next) {
   void panel.offsetWidth; // перезапуск анимации появления
   panel.classList.add("is-in");
   initMagnetic();
+  if (tab === "settings") mountProfileModules();
 }
 
 function worksHTML() {
@@ -299,6 +312,8 @@ function settingsHTML() {
     </div>
 
     ${minecraftHTML()}
+
+    <div class="pf-mods" id="pfMods"></div>
 
     <div class="pf-card glass pf-exit">
       <h3>Выход</h3>

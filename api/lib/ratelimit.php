@@ -23,11 +23,17 @@ const RATE_LIMITS = [
     'forum_post' => [60, 3600],   // ответы на форуме: 60 / час
 ];
 
+/** Лимит для действия модуля: rate_limit_define('poll_vote', 60, 3600). */
+function rate_limit_define(string $action, int $limit, int $window): void
+{
+    $GLOBALS['NDZE_RATE_LIMITS'][$action] = [$limit, max(1, $window)];
+}
+
 function rate_limit_conf(string $action): ?array
 {
     $over = cfg('rate_limits', []);
     if ($over === false) return null;
-    $conf = RATE_LIMITS[$action] ?? null;
+    $conf = RATE_LIMITS[$action] ?? $GLOBALS['NDZE_RATE_LIMITS'][$action] ?? null;
     if (is_array($over) && isset($over[$action])) {
         if ($over[$action] === false) return null;
         if (is_array($over[$action]) && count($over[$action]) === 2) $conf = [(int) $over[$action][0], max(1, (int) $over[$action][1])];
@@ -39,7 +45,12 @@ function rate_limit_conf(string $action): ?array
 function ip_subject(): string
 {
     $secret = 'ndze-rl|' . (string) cfg('db.name', '') . '|' . (string) cfg('db.pass', '') . '|' . (string) cfg('discord.client_secret', '');
-    return hash_hmac('sha256', client_ip(), $secret);
+    $ip = client_ip();
+    // IPv6: у одного абонента обычно целая сеть /64 — считаем её одним адресом, иначе лимиты обходятся сменой IP
+    if (str_contains($ip, ':') && ($bin = @inet_pton($ip)) !== false && strlen($bin) === 16) {
+        $ip = inet_ntop(substr($bin, 0, 8) . str_repeat("\0", 8)) . '/64';
+    }
+    return hash_hmac('sha256', $ip, $secret);
 }
 
 function user_subject(string $userId): string

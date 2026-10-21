@@ -101,8 +101,19 @@
 
 import { SITE } from "../config.js";
 
-export const api = SITE.backend === "php"
-  ? (await import("./php.js")).createPhpBackend()
-  : (await import("./local.js")).createLocalBackend();
+const php = SITE.backend === "php" ? await import("./php.js") : null;
+export const api = php ? php.createPhpBackend() : (await import("./local.js")).createLocalBackend();
 
+/**
+ * Прямой вызов маршрута API для модулей фич (assets/js/{play,admin,home,header,profile,overlay}/…):
+ *   await apiCall("polls")                                   // GET api/index.php?r=polls
+ *   await apiCall("poll/vote", { method: "POST", body: {…} }) // POST JSON (заголовок CSRF ставится сам)
+ *   await apiCall("build", { method: "POST", form })          // multipart (FormData)
+ * В локальном демо-режиме бросает ApiError("validation") — модули показывают «работает на ndze.fun».
+ */
+export const apiCall = php
+  ? php.call
+  : async () => { throw new ApiError("validation", "Это работает на сайте ndze.fun (в локальном демо-режиме нет)"); };
+
+import { ApiError } from "./errors.js";
 export { ApiError, toApiError } from "./errors.js";

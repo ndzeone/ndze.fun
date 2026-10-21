@@ -4,7 +4,7 @@ import { SITE } from "../config.js";
 import { mountLayout, onUserChange, getUser, openAuth } from "../core/layout.js";
 import { api } from "../data/api.js";
 import { setupModal, shake } from "../core/modal.js";
-import { $, $$, esc, avatarHTML, plural, timeAgo, formatDate, toast } from "../core/util.js";
+import { $, $$, esc, avatarHTML, plural, timeAgo, formatDate, toast, userUrl } from "../core/util.js";
 import { renderMarkdown, preloadMarkdown } from "../core/markdown.js";
 import { initMagnetic } from "../core/fx.js";
 
@@ -94,7 +94,7 @@ function threadRowHTML(t, { showSection = false } = {}) {
       <span class="fr-row-meta">
         ${showSection ? `<a class="fr-sec-tag" href="#/s/${esc(t.section)}">${ICONS[t.section] || ""} ${esc(sectionLabel(t.section))}</a>` : ""}
         ${projectTagHTML(t.project)}
-        <span>${esc(t.author.nick)}${t.author.isAdmin ? ' <span class="role-badge">admin</span>' : ""}</span>
+        <a class="fr-nick" href="${esc(userUrl(t.author.nick))}">${esc(t.author.nick)}</a>${t.author.isAdmin ? ' <span class="role-badge">admin</span>' : ""}
         <time datetime="${esc(t.createdAt)}">${esc(timeAgo(t.createdAt))}</time>
       </span>
     </div>
@@ -187,7 +187,7 @@ function postHTML(p, { first = false, threadLocked = false } = {}) {
   return `<article class="fr-post glass${first ? " is-first" : ""}${p.author.isAdmin ? " is-admin" : ""}" id="${first ? "top" : `p-${esc(p.id)}`}" data-kind="${first ? "thread" : "post"}" data-id="${esc(first ? t.id : p.id)}">
     <aside class="fr-author">
       ${avatarHTML(p.author.nick, p.author.avatarUrl, { size: "lg" })}
-      <b>${esc(p.author.nick)}</b>
+      <a class="fr-nick" href="${esc(userUrl(p.author.nick))}"><b>${esc(p.author.nick)}</b></a>
       ${p.author.isAdmin ? '<span class="role-badge">admin</span>' : ""}
     </aside>
     <div class="fr-post-main">

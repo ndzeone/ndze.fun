@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Стримы — ndze</title>
+  <meta name="description" content="Стримы ndze: расписание с обратным отсчётом, напоминания и .ics в календарь, цели канала и архив эфиров с таймкодами.">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/streamtools.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main">
+    <header class="page-head stx-head">
+      <p class="stx-kicker"><span class="pulse-dot" aria-hidden="true"></span>Расписание · цели · архив</p>
+      <h1>Стримы</h1>
+      <p>Когда следующий эфир, к чему идёт канал и что было на прошлых стримах — с таймкодами на лучшие моменты, задания и разборы работ.</p>
+    </header>
+
+    <section id="schedule" aria-labelledby="schTitle">
+      <div class="section-head"><span class="section-index">01</span><h2 id="schTitle">Расписание</h2><span class="spacer"></span>
+        <a class="btn btn-ghost btn-sm" id="icsAll" href="api/index.php?r=schedule/ics" download="ndze-streams.ics">📅 Всё в календарь</a></div>
+      <div class="stx-page-sched">
+        <div id="nextBox"></div>
+        <div class="stx-week glass" id="week"><div class="skeleton"></div></div>
+      </div>
+    </section>
+
+    <section id="goals" aria-labelledby="goalsTitle">
+      <div class="section-head"><span class="section-index">02</span><h2 id="goalsTitle">Цели канала</h2></div>
+      <div class="stx-goals-box glass" id="goalsBox"><div class="skeleton"></div></div>
+    </section>
+
+    <section id="archive" aria-labelledby="arcTitle">
+      <div class="section-head"><span class="section-index">03</span><h2 id="arcTitle">Архив эфиров</h2><span class="spacer"></span>
+        <span class="stx-faint" id="arcCount"></span></div>
+      <div class="stx-archive" id="arcList" aria-live="polite"><div class="skeleton"></div></div>
+      <p class="stx-more-wrap"><button class="btn btn-ghost btn-sm stx-more" type="button" id="arcMore" hidden>Показать ещё</button></p>
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/pages/streams.js"></script>
+</body>
+</html>

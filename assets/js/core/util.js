@@ -62,6 +62,9 @@ export function toast(message, type = "ok", ms = 3800) {
   }, ms);
 }
 
+/** Ссылка на публичный профиль зрителя. */
+export const userUrl = (nick) => `user.html?u=${encodeURIComponent(nick)}`;
+
 /** Первая буква ника для аватарки. */
 export const initial = (nick) => ([...String(nick || "?")][0] || "?").toUpperCase();
 

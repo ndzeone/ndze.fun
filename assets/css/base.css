@@ -134,6 +134,8 @@ html.cursor-on .cursor-dot, html.cursor-on .cursor-ring { opacity: 1; }
 .burger[aria-expanded="true"] span::before { transform: translateY(6px) rotate(45deg); }
 .burger[aria-expanded="true"] span::after { transform: translateY(-6px) rotate(-45deg); }
 
+.header-mods { display: flex; align-items: center; gap: 6px; }
+.header-mods:empty { display: none; }
 .user-chip { display: flex; align-items: center; gap: 10px; }
 .avatar {
   width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center;
@@ -157,6 +159,7 @@ html.cursor-on .cursor-dot, html.cursor-on .cursor-ring { opacity: 1; }
 .role-badge { font: 600 .7rem var(--pixel); color: var(--black); background: var(--lime); padding: 1px 8px; border-radius: var(--pill); text-transform: uppercase; }
 .link-btn { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: .85rem; padding: 4px; }
 .link-btn:hover { color: var(--text); }
+@media (max-width: 420px) { .site-header .role-badge { display: none; } .header-right { gap: 6px; } }
 
 /* ---------- Кнопки ---------- */
 .btn {
@@ -462,3 +465,125 @@ h3 { line-height: 1.3; }
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; }
 }
+
+/* =========================================================
+   Рамки аватарок (сезоны, уровни, серия бонусов): <span class="avatar frame-gold|silver|bronze|web|neon|lime">
+   Кольцо — ::before (маской вырезано из градиента), пиксельное украшение — ::after.
+   Толщина в em: аватарки разных размеров (xs/sm/обычная/lg/xl) задают свой font-size,
+   поэтому кольцо и «пиксели» масштабируются сами.
+   ========================================================= */
+.avatar[class*="frame-"] {
+  --fw: max(1.5px, .12em);   /* толщина кольца */
+  --px: max(1px, .075em);    /* размер «пикселя» украшения */
+  --frame: conic-gradient(var(--lime), var(--forest), var(--lime));
+  --frame-glow: rgba(93, 214, 44, .5);
+  overflow: visible; isolation: isolate;
+}
+.avatar[class*="frame-"]::before {
+  content: ""; position: absolute; z-index: 1; inset: calc(var(--fw) * -.7); padding: var(--fw);
+  border-radius: 50%; pointer-events: none; background: var(--frame);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.avatar[class*="frame-"]::after { content: none; position: absolute; z-index: 2; pointer-events: none; }
+/* двойной класс — сильнее, чем .avatar.xs / .pf-avatar-btn .avatar с их тенями */
+.avatar.avatar[class*="frame-"] { box-shadow: 0 0 calc(var(--fw) * 5) var(--frame-glow); }
+.avatar.xs[class*="frame-"]::after { display: none; } /* в строке текста украшение не читается */
+
+/* ---------- Золото: корона ---------- */
+.avatar.frame-gold {
+  --frame: conic-gradient(from 20deg, #fff3b0, #ffd166 12%, #c98a12 25%, #ffd166 38%, #fff3b0 50%, #ffd166 62%, #c98a12 75%, #ffd166 88%, #fff3b0);
+  --frame-glow: rgba(255, 209, 102, .7);
+}
+.avatar.frame-gold::after {
+  content: ""; width: var(--px); height: var(--px); background: #ffd166;
+  left: calc(50% - var(--px) * 2.5); top: calc(var(--fw) * -.7 - var(--px) * 3.2);
+  box-shadow:
+    calc(var(--px) * 2) 0 #ffd166, calc(var(--px) * 4) 0 #ffd166,
+    0 var(--px) #e0a82e, var(--px) var(--px) #ffd166, calc(var(--px) * 2) var(--px) #ff5d7a, calc(var(--px) * 3) var(--px) #ffd166, calc(var(--px) * 4) var(--px) #e0a82e,
+    0 calc(var(--px) * 2) #c98a12, var(--px) calc(var(--px) * 2) #e0a82e, calc(var(--px) * 2) calc(var(--px) * 2) #e0a82e, calc(var(--px) * 3) calc(var(--px) * 2) #e0a82e, calc(var(--px) * 4) calc(var(--px) * 2) #c98a12;
+  filter: drop-shadow(0 0 calc(var(--px) * 2) rgba(255, 209, 102, .8));
+}
+
+/* ---------- Серебро и бронза: пиксельная искра ---------- */
+.avatar.frame-silver {
+  --frame: conic-gradient(from 20deg, #ffffff, #c9d3e0 15%, #7f8ea3 30%, #e9eef5 50%, #7f8ea3 70%, #c9d3e0 85%, #ffffff);
+  --frame-glow: rgba(201, 211, 224, .6);
+}
+.avatar.frame-bronze {
+  --frame: conic-gradient(from 20deg, #ffd0a1, #d08a4b 15%, #8a4f22 30%, #e9a66a 50%, #8a4f22 70%, #d08a4b 85%, #ffd0a1);
+  --frame-glow: rgba(208, 138, 75, .55);
+}
+.avatar.frame-silver::after, .avatar.frame-bronze::after {
+  content: ""; width: var(--px); height: var(--px); background: #fff;
+  right: 8%; top: 8%; translate: 50% -50%;
+  box-shadow: 0 calc(var(--px) * -1) var(--spark), calc(var(--px) * -1) 0 var(--spark), var(--px) 0 var(--spark), 0 var(--px) var(--spark);
+  filter: drop-shadow(0 0 var(--px) var(--spark));
+}
+.avatar.frame-silver { --spark: #e9eef5; }
+.avatar.frame-bronze { --spark: #ffb877; }
+@media (prefers-reduced-motion: no-preference) {
+  .avatar.frame-silver::after, .avatar.frame-bronze::after { animation: ptSpark 2.4s steps(2, jump-none) infinite; }
+}
+@keyframes ptSpark { 0%, 70% { opacity: 1; } 85% { opacity: .2; } }
+
+/* ---------- Паутина: нити поперёк кольца ---------- */
+.avatar.frame-web {
+  --frame:
+    repeating-conic-gradient(rgba(248, 248, 248, .95) 0 2.5deg, transparent 2.5deg 30deg),
+    repeating-radial-gradient(circle, rgba(248, 248, 248, .55) 0 1px, transparent 1px 3px),
+    conic-gradient(#1c1c1c, #2c2c2c, #1c1c1c);
+  --frame-glow: rgba(248, 248, 248, .35);
+}
+.avatar.frame-web::after {
+  /* паучок висит справа на нити */
+  content: ""; width: var(--px); height: calc(var(--px) * 3); background: rgba(248, 248, 248, .8);
+  right: 6%; top: 52%;
+  box-shadow:
+    0 calc(var(--px) * 3) #0f0f0f, var(--px) calc(var(--px) * 3) #0f0f0f, calc(var(--px) * -1) calc(var(--px) * 3) #0f0f0f,
+    0 calc(var(--px) * 4) #ff3b4a, calc(var(--px) * -2) calc(var(--px) * 4) #0f0f0f, calc(var(--px) * 2) calc(var(--px) * 4) #0f0f0f,
+    calc(var(--px) * -1) calc(var(--px) * 5) #0f0f0f, var(--px) calc(var(--px) * 5) #0f0f0f;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .avatar.frame-web::after { animation: ptSpider 3.2s ease-in-out infinite; transform-origin: 50% 0; }
+}
+@keyframes ptSpider { 50% { transform: translateY(calc(var(--px) * 2)); } }
+
+/* ---------- Неон: переливающееся кольцо ---------- */
+.avatar.frame-neon {
+  --frame: conic-gradient(#ff3bd4, #3bf0ff, #5dd62c, #ffe93b, #ff3bd4);
+  --frame-glow: rgba(255, 59, 212, .6);
+}
+.avatar.avatar.frame-neon { box-shadow: 0 0 calc(var(--fw) * 4) rgba(255, 59, 212, .55), 0 0 calc(var(--fw) * 8) rgba(59, 240, 255, .35); }
+@media (prefers-reduced-motion: no-preference) {
+  .avatar.frame-neon::before { animation: ptSpin 3s linear infinite; }
+  .avatar.avatar.frame-neon { animation: ptNeon 3s linear infinite; }
+}
+@keyframes ptSpin { to { transform: rotate(1turn); } }
+@keyframes ptNeon {
+  50% { box-shadow: 0 0 calc(var(--fw) * 4) rgba(59, 240, 255, .6), 0 0 calc(var(--fw) * 8) rgba(255, 59, 212, .35); }
+}
+
+/* ---------- Лайм (серия 7 дней): ступенчатое кольцо и огонёк ---------- */
+.avatar.frame-lime {
+  --frame: repeating-conic-gradient(#5dd62c 0 15deg, #b6ff8a 15deg 30deg);
+  --frame-glow: rgba(93, 214, 44, .75);
+}
+.avatar.frame-lime::after {
+  content: ""; width: var(--px); height: var(--px); background: #ffe93b;
+  right: 10%; bottom: 10%; translate: 50% 50%;
+  box-shadow:
+    0 calc(var(--px) * -2) #ff8a1f, 0 calc(var(--px) * -1) #ffb02e,
+    calc(var(--px) * -1) 0 #ff8a1f, var(--px) 0 #ff8a1f,
+    calc(var(--px) * -1) calc(var(--px) * -1) #ff5d1f, var(--px) calc(var(--px) * -1) #ff5d1f,
+    0 var(--px) #ff8a1f, calc(var(--px) * -1) var(--px) #ff5d1f, var(--px) var(--px) #ff5d1f;
+  filter: drop-shadow(0 0 var(--px) rgba(255, 138, 31, .9));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .avatar.avatar.frame-lime { animation: ptLimeGlow 2.2s ease-in-out infinite; }
+  .avatar.frame-lime::after { animation: ptFlame .5s steps(2, jump-none) infinite alternate; }
+}
+@keyframes ptLimeGlow {
+  50% { box-shadow: 0 0 calc(var(--fw) * 8) rgba(93, 214, 44, .9); }
+}
+@keyframes ptFlame { to { transform: scaleY(1.15) translateY(calc(var(--px) * -.3)); } }

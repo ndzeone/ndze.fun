@@ -3,12 +3,36 @@
 Статический сайт без сборки: чистые HTML + CSS + ES-модули. Открывать через `start.bat`
 (локальный сервер на http://localhost:8000). Двойной клик по .html не подойдёт — модули не работают по `file://`.
 
+## Модули фич
+
+Новые возможности подключаются модулями, не трогая общие файлы:
+
+- **Сервер:** `api/lib/features/*.php` подключаются автоматически (`bootstrap.php`). Модуль регистрирует маршруты
+  (`route_add`), лимиты (`rate_limit_define`), метрики/значки/опыт (`metric_add`, `badge_add`, `xp_add`) и слушает
+  события ядра (`event_on('live.start' …)`) — см. `api/lib/platform.php`. Уведомления — `notify()`, баллы —
+  `points_add` / `points_spend` (журнал `points_ledger`).
+- **Фронтенд:** реестр `assets/js/modules.js` — вкладки «Движ» (`play/`), вкладки «Пульта» (`admin/`), карточки в
+  настройках кабинета (`profile/`), блоки главной (`home/`), кнопки шапки (`header/`), виджеты OBS (`overlay/`).
+  Модуль экспортирует `mount(container, ctx)` и сам подключает свой CSS через `ensureCss()`.
+
+| Модуль | Сервер | Что делает |
+|---|---|---|
+| Стрим-инструменты | `features/streamtools.php` | расписание, .ics, архив с таймкодами, цели канала, зритель дня |
+| Уведомления | `features/notify.php` + `sw.js` | колокольчик, Web Push «в эфире»/новости, Discord-вебхук |
+| Баллы | `features/points.php` | магазин наград, ежедневный бонус и серия, сезоны, войны команд, рамки аватарок |
+| Интерактив | `features/interactive.php` | опросы, честные розыгрыши, бинго, квизы, тир-листы |
+| Сообщество | `features/community.php` | клипы недели, публичные профили, квест «5 пауков», карта и постройки Penta |
+
+Тесты модулей — `tests/features/*.php` (CI запускает их после основного `tests/api-test.php`).
+
 ## Страницы
 
 | Файл | id для mountLayout | Что делает | JS / CSS |
 |---|---|---|---|
 | `index.html` | `home` | Главная: герой с Человеком-пауком, проекты, Twitch, YouTube, Discord-серверы | `pages/home.js`, `home.css` |
 | `projects.html` | `projects` | Мои и совместные проекты (список — `SITE.projects` в config.js) | `pages/projects.js`, `projects.css` |
+| `streams.html` | `streams` | Расписание стримов (.ics, напоминания), архив эфиров с таймкодами, цели канала | `pages/streams.js`, `streamtools.css` |
+| `user.html?u=<ник>` | `user` | Публичный профиль зрителя: уровень, значки, галерея, темы форума | `pages/user.js`, `community.css` |
 | `forum.html#/…` | `forum` | Форум: новости, правила проектов, идеи, вопросы, общение (Markdown через `core/markdown.js`) | `pages/forum.js`, `forum.css` |
 | `play.html` | `play` | «Движ»: битва работ, ставки баллами, общий холст, лидеры, мини-игра | `pages/play.js`, `play.css` (+ `core/place.js`, `core/runner.js`) |
 | `stream.html` | `stream` | Пульт стрима (админ): колесо заданий, оверлеи OBS, ставки, вайтлист, холст | `pages/stream.js`, `stream.css`, `core/wheel.js` |

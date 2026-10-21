@@ -3,18 +3,28 @@
 import { api } from "../data/api.js";
 import { GAMES, byId } from "../data/constants.js";
 import { spinWheel } from "../core/wheel.js";
+import { MODULES, loadModule } from "../modules.js";
 
 const params = new URLSearchParams(location.search);
-const W = ["all", "task", "top", "work", "wheel", "qr"].includes(params.get("w")) ? params.get("w") : "all";
 const KEY = params.get("key") || "";
 const root = document.getElementById("ov");
-root.dataset.w = W;
+// виджеты модулей фич (assets/js/overlay/*.js): цели, зритель дня, расписание, опрос, розыгрыш, бинго, команды
+const modEntry = MODULES.overlay.find((m) => m.id === params.get("w"));
+if (modEntry) {
+  root.dataset.w = modEntry.id;
+  const mod = await loadModule(modEntry);
+  if (mod?.mount) mod.mount(root, { key: KEY, params });
+  else root.innerHTML = `<p class="ov-error">Виджет «${modEntry.id}» не загрузился</p>`;
+}
+const BUILTIN = !modEntry; // встроенные виджеты ниже запускаются, только если это не виджет модуля
+const W = ["all", "task", "top", "work", "wheel", "qr"].includes(params.get("w")) ? params.get("w") : "all";
+if (BUILTIN) root.dataset.w = W;
 const show = (w) => W === "all" || W === w;
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ESC[c]);
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-root.innerHTML = `
+if (BUILTIN) root.innerHTML = `
   ${show("task") ? '<section class="ov-task" id="task" hidden></section>' : ""}
   ${show("top") ? '<section class="ov-top" id="top" hidden></section>' : ""}
   ${show("work") ? '<section class="ov-work" id="work" hidden></section>' : ""}
@@ -33,7 +43,7 @@ function drawQr() {
   qr.make();
   box.innerHTML = qr.createSvgTag({ cellSize: 8, margin: 1, scalable: true });
 }
-drawQr();
+if (BUILTIN) drawQr();
 
 /* ---------- Блоки ---------- */
 let lastTaskId = null;
@@ -119,4 +129,4 @@ async function tick() {
   }
   setTimeout(tick, 3000);
 }
-tick();
+if (BUILTIN) tick();

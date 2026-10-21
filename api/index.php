@@ -96,9 +96,10 @@ try {
     $method = request_method();
     if ($method === 'HEAD') $method = 'GET';
     $route = trim(query_str('r'), "/ \t");
-    $handler = ROUTES[$method . ' ' . $route] ?? null;
+    $routes = all_routes(ROUTES);
+    $handler = $routes[$method . ' ' . $route] ?? null;
     if ($handler === null) {
-        $exists = isset(ROUTES['GET ' . $route]) || isset(ROUTES['POST ' . $route]);
+        $exists = isset($routes['GET ' . $route]) || isset($routes['POST ' . $route]);
         throw new ApiError('not_found', $exists ? 'Метод не поддерживается для этого маршрута' : 'Неизвестный маршрут API');
     }
     if ($method === 'POST') check_csrf();
@@ -106,7 +107,7 @@ try {
         throw new ApiError('unknown', 'Сервер ещё не настроен (нет api/config.php)', null, 503);
     }
     $data = $handler();
-    if ($route !== 'image' && $route !== 'avatar') respond_ok($data); // картинки отдаются сами
+    if (empty($GLOBALS['NDZE_RAW_ROUTES'][$route])) respond_ok($data); // картинки отдаются сами
 } catch (ApiError $e) {
     respond_error($e);
 } catch (Throwable $e) {

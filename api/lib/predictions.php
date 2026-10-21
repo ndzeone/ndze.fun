@@ -11,7 +11,8 @@ const PRED_STATUSES = ['open', 'locked', 'resolved', 'cancelled'];
 function points_balance(string $userId): int
 {
     $r = q_one('SELECT COALESCE(SUM(COALESCE(payout, 0)), 0) AS won, COALESCE(SUM(amount), 0) AS spent FROM prediction_bets WHERE user_id = ?', [$userId]);
-    return POINTS_START + (int) $r['won'] - (int) $r['spent'];
+    $l = q_one('SELECT COALESCE(SUM(delta), 0) AS d FROM points_ledger WHERE user_id = ?', [$userId]);
+    return POINTS_START + (int) $r['won'] - (int) $r['spent'] + (int) $l['d'];
 }
 
 function find_prediction(?string $id, bool $lock = false): array
@@ -123,7 +124,9 @@ function route_prediction_create(): array
     $t = now_db();
     q('INSERT INTO predictions (id, question, options, status, result, created_at, updated_at) VALUES (?, ?, ?, ?, NULL, ?, ?)',
         [$id, $q, json_encode_safe($opts), 'open', $t, $t]);
-    return predictions_view([find_prediction($id)], $me)[0];
+    $view = predictions_view([find_prediction($id)], $me)[0];
+    event_emit('prediction.open', ['prediction' => $view]);
+    return $view;
 }
 
 /** POST prediction/update { id, action: lock | open | resolve | cancel, option? } (админ) */
@@ -164,5 +167,15 @@ function route_prediction_update(): array
         if ($pdo->inTransaction()) $pdo->rollBack();
         throw $e;
     }
-    return predictions_view([find_prediction($p['id'])], $me)[0];
+    if ($action === 'resolve' || $action === 'cancel') {
+        foreach (q_all('SELECT user_id, amount, payout FROM prediction_bets WHERE prediction_id = ?', [$p['id']]) as $bet) {
+            $diff = (int) $bet['payout'] - (int) $bet['amount'];
+            $text = $action === 'cancel' ? "Ставка «{$p['question']}» отменена — баллы вернулись"
+                : ($diff > 0 ? "Ставка «{$p['question']}» сыграла: +$diff баллов 🔮" : "Ставка «{$p['question']}» не сыграла");
+            notify($bet['user_id'], 'bet', $text, 'play.html#bets');
+        }
+    }
+    $view = predictions_view([find_prediction($p['id'])], $me)[0];
+    event_emit('prediction.' . $action, ['prediction' => $view]);
+    return $view;
 }

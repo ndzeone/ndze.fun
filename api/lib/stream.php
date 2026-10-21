@@ -104,6 +104,7 @@ function route_wheel_spin(): array
     q("UPDATE tasks SET status = 'live', updated_at = ? WHERE id = ?", [now_db(), $spin['winnerId']]);
     setting_set('wheel', $spin);
     setting_set('current_task', $spin['winnerId']);
+    event_emit('wheel.spin', ['spin' => $spin, 'winner' => $cands[$win]]);
     return $spin;
 }
 

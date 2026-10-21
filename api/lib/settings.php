@@ -53,24 +53,42 @@ function live_status(): array
     if (!is_array($c) || time() - (int) ($c['checkedAt'] ?? 0) >= LIVE_TTL) {
         // сначала «занимаем» проверку: остальные запросы в эту минуту отдадут кэш, а не пойдут в decapi сами
         $c = (is_array($c) ? $c : ['live' => false]);
+        // проверку «занимает» только один запрос (именованная блокировка): иначе два одновременных
+        // запроса оба увидели бы начало эфира и разослали push и Discord-пост дважды
+        if ((int) db()->query("SELECT GET_LOCK('ndze_live', 0)")->fetchColumn() !== 1) return live_view_of($c);
+        $fresh2 = setting_get('live');
+        if (is_array($fresh2) && time() - (int) ($fresh2['checkedAt'] ?? 0) < LIVE_TTL) {
+            db()->query("SELECT RELEASE_LOCK('ndze_live')");
+            return live_view_of($fresh2);
+        }
         $c['checkedAt'] = time();
         setting_set('live', $c);
+        $wasLive = (bool) ($c['live'] ?? false);
         $fresh = live_fetch();
         if ($fresh['ok']) {
             $c = $fresh + ['checkedAt' => time(), 'okAt' => time()];
+            // начало эфира — событие для push и Discord (слушатели в api/lib/features)
+            if ($fresh['live'] && !$wasLive) event_emit('live.start', ['title' => $fresh['title'] ?? null, 'game' => $fresh['game'] ?? null, 'channel' => twitch_channel()]);
+            if (!$fresh['live'] && $wasLive) event_emit('live.end', []);
         } elseif (time() - (int) ($c['okAt'] ?? 0) > 600) {
             $c['live'] = false; // decapi молчит больше 10 минут — не держим плашку «в эфире» вечно
         }
         $c['checkedAt'] = time();
         setting_set('live', $c);
+        db()->query("SELECT RELEASE_LOCK('ndze_live')");
     }
+    return live_view_of($c);
+}
+
+function live_view_of(array $c): array
+{
     return [
         'live' => (bool) ($c['live'] ?? false),
         'channel' => twitch_channel(),
         'title' => $c['title'] ?? null,
         'game' => $c['game'] ?? null,
         'uptime' => $c['uptime'] ?? null,
-        'checkedAt' => gmdate('Y-m-d\TH:i:s.000\Z', (int) $c['checkedAt']),
+        'checkedAt' => gmdate('Y-m-d\TH:i:s.000\Z', (int) ($c['checkedAt'] ?? time())),
     ];
 }
 

@@ -1060,7 +1060,11 @@ req($B, 'GET', 'game/start');
 $r = req($B, 'POST', 'game/score', [], ['score' => 40]);
 check('honest score → best and rank', isOk($r) && data($r)['best'] >= 40 && data($r)['rank'] >= 1, desc($r));
 $r = req($guest, 'GET', 'game/top');
-check('game/top lists B', isOk($r) && in_array($B->user['id'], array_map(fn($x) => $x['user']['id'], data($r)['all'] ?? []), true), desc($r));
+$topAll = data($r)['all'] ?? [];
+// на «грязной» базе топ-10 могут занять прошлые прогоны с тем же счётом — тогда B честно не влезает
+$bInTop = in_array($B->user['id'], array_map(fn($x) => $x['user']['id'], $topAll), true)
+    || (count($topAll) === 10 && min(array_column($topAll, 'score')) >= 40);
+check('game/top lists B (or top-10 is full of equal/better scores)', isOk($r) && $bInTop, desc($r));
 foreach ($bIds as $id) { req($admin, 'POST', 'submission/delete', [], ['id' => $id]); unset($LEDGER['subs'][$id]); }
 reset_rl();
 

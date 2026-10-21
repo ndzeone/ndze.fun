@@ -3,8 +3,9 @@
 import { mountLayout, onUserChange, getUser, openAuth } from "../core/layout.js";
 import { api } from "../data/api.js";
 import { CATEGORIES, byId } from "../data/constants.js";
-import { $, $$, esc, avatarHTML, plural, timeAgo, toast, motion, wait } from "../core/util.js";
+import { $, $$, esc, avatarHTML, plural, timeAgo, toast, motion, wait, userUrl } from "../core/util.js";
 import { initMagnetic } from "../core/fx.js";
+import { MODULES, loadModule } from "../modules.js";
 
 await mountLayout("play");
 
@@ -14,6 +15,7 @@ const TABS = [
   { id: "canvas", label: "Холст", icon: "🎨" },
   { id: "leaders", label: "Лидеры", icon: "🏆" },
   { id: "game", label: "Игра", icon: "🕷" },
+  ...MODULES.play.map((m) => ({ ...m, module: m })), // вкладки модулей фич (assets/js/play/*.js)
 ];
 const panel = $("#playPanel");
 let tab = TABS.some((t) => `#${t.id}` === location.hash) ? location.hash.slice(1) : "battle";
@@ -52,6 +54,18 @@ async function show(next, { focus = false } = {}) {
 
 async function mountModule(my, which) {
   const box = document.createElement("div");
+  const entry = TABS.find((t) => t.id === which)?.module;
+  if (entry) {
+    const mod = await loadModule(entry);
+    if (my !== seq) return;
+    if (!mod?.mount) {
+      panel.innerHTML = `<div class="empty"><span class="empty-icon">${entry.icon || "🕸"}</span><p>Раздел «${esc(entry.label)}» скоро появится.</p></div>`;
+      return;
+    }
+    panel.replaceChildren(box);
+    mounted = mod.mount(box, { user: getUser(), isAdmin: getUser()?.role === "admin" }) || null;
+    return;
+  }
   const mod = which === "canvas" ? await import("../core/place.js") : await import("../core/runner.js");
   if (my !== seq) return;
   panel.replaceChildren(box);
@@ -238,7 +252,7 @@ async function renderLeaders(my) {
   const row = (r, i) => `<li class="ld-row${me?.id === r.user.id ? " is-me" : ""}">
     <span class="ld-place">${i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>
     ${avatarHTML(r.user.nick, r.user.avatarUrl, { size: "sm" })}
-    <span class="ld-name"><b>${esc(r.user.nick)}</b><small>${esc(r.title)} · ${r.badges} ${plural(r.badges, ["значок", "значка", "значков"])}</small></span>
+    <span class="ld-name"><a href="${esc(userUrl(r.user.nick))}"><b>${esc(r.user.nick)}</b></a><small>${esc(r.title)} · ${r.badges} ${plural(r.badges, ["значок", "значка", "значков"])}</small></span>
     <span class="ld-level">ур. ${r.level}</span>
     <span class="ld-xp">${r.xp} XP</span>
   </li>`;
@@ -279,6 +293,6 @@ window.addEventListener("hashchange", () => {
   if (h !== tab && TABS.some((t) => t.id === h)) show(h);
 });
 // вход/выход меняет кнопки и балансы — перерисуем текущую вкладку (холст и игра следят за входом сами)
-onUserChange(() => { if (tab === "battle" || tab === "bets" || tab === "leaders") show(tab); });
+onUserChange(() => { if (tab === "battle" || tab === "bets" || tab === "leaders" || TABS.find((t) => t.id === tab)?.module) show(tab); });
 
 show(tab);

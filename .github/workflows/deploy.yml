@@ -93,6 +93,16 @@ jobs:
       - name: Интеграционные тесты API
         run: php tests/api-test.php "$API_BASE"
 
+      - name: Тесты модулей фич (tests/features)
+        run: |
+          shopt -s nullglob
+          for t in tests/features/*.php; do
+            echo "::group::$t"
+            mysql -h127.0.0.1 -uroot -proot_test_pw ndze_test -e "DELETE FROM rate_limits" 2>/dev/null || true
+            php "$t" "$API_BASE" || { echo "::endgroup::"; echo "::error::$t упал"; exit 1; }
+            echo "::endgroup::"
+          done
+
       - name: Логи PHP (при ошибке)
         if: failure()
         run: |

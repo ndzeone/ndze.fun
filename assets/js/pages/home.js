@@ -1,6 +1,7 @@
 import { SITE } from "../config.js";
-import { mountLayout, DISCORD_SVG } from "../core/layout.js";
-import { $, $$, esc, lerp, motion, finePointer, toast, initial, avatarHTML, plural, timeAgo } from "../core/util.js";
+import { mountLayout, DISCORD_SVG, getUser } from "../core/layout.js";
+import { mountSlot } from "../modules.js";
+import { $, $$, esc, lerp, motion, finePointer, toast, initial, avatarHTML, plural, timeAgo, userUrl } from "../core/util.js";
 import { api } from "../data/api.js";
 import { ROOT, people, loadDiscord, iconUrl, liveInvite, minecraftStatus, showMinecraft, setCount } from "../core/community.js";
 import { mouse, onFrame, initReveal, initMagnetic, initTilt } from "../core/fx.js";
@@ -223,7 +224,7 @@ async function renderFame() {
   const week = battle.week;
   const row = (r, i) => `<li class="fame-row"><span class="fame-place">${i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>
     ${avatarHTML(r.user.nick, r.user.avatarUrl, { size: "sm" })}
-    <span class="fame-name"><b>${esc(r.user.nick)}</b><small>ур. ${r.level} · ${esc(r.title)}</small></span>
+    <span class="fame-name"><a href="${esc(userUrl(r.user.nick))}"><b>${esc(r.user.nick)}</b></a><small>ур. ${r.level} · ${esc(r.title)}</small></span>
     <span class="fame-xp">${r.xp} XP</span></li>`;
   grid.innerHTML = `
     <article class="card glass fame-card">
@@ -267,6 +268,10 @@ $("#dcGrid").addEventListener("click", async (e) => {
 
 renderTwitch();
 renderYouTube();
+// модули фич на главной (расписание, цели, зритель дня, клипы — assets/js/home/*.js); пустую секцию прячем
+mountSlot("home", $("#homeMods"), { user: getUser(), isAdmin: getUser()?.role === "admin" }).then(() => {
+  if (!$("#homeMods").children.length) $("#channel").hidden = true;
+});
 renderNews();
 renderFame();
 const discordData = await loadDiscord();

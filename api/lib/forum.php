@@ -213,6 +213,8 @@ function route_forum_thread_create(): array
     q('INSERT INTO forum_threads (id, section, project, user_id, title, body, pinned, locked, replies, views, last_post_at, last_user_id, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?, ?, ?, ?)',
         [$id, $section, $project ?: null, $me['id'], $title, $body, $t, $me['id'], $t, $t]);
+    event_emit('forum.thread', ['id' => $id, 'section' => $section, 'project' => $project ?: null, 'title' => $title,
+        'excerpt' => forum_excerpt($body), 'author' => $me['nick'], 'url' => site_url("forum.html#/t/$id")]);
     return ['id' => $id];
 }
 
@@ -239,7 +241,12 @@ function route_forum_post_create(): array
         if ($pdo->inTransaction()) $pdo->rollBack();
         throw $e;
     }
-    return ['id' => $id, 'page' => (int) ceil(((int) $th['replies'] + 1) / FORUM_POSTS_PER_PAGE)];
+    $page = (int) ceil(((int) $th['replies'] + 1) / FORUM_POSTS_PER_PAGE);
+    if ($th['user_id'] !== $me['id']) {
+        notify($th['user_id'], 'forum', "{$me['nick']} ответил в теме «{$th['title']}»", "forum.html#/t/{$th['id']}/$page");
+    }
+    event_emit('forum.post', ['threadId' => $th['id'], 'title' => $th['title'], 'author' => $me['nick']]);
+    return ['id' => $id, 'page' => $page];
 }
 
 /** POST forum/edit { kind: thread|post, id, title?, body } — автор или админ. */

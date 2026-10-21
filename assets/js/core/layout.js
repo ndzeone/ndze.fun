@@ -19,8 +19,9 @@ export const NAV = [
   { id: "home", href: "index.html", label: "Главная" },
   { id: "projects", href: "projects.html", label: "Проекты" },
   { id: "repos", href: "repos.html", label: "GitHub" },
-  { id: "review", href: "review.html", label: "Оценка работ" },
+  { id: "review", href: "review.html", label: "Работы" },
   { id: "tasks", href: "tasks.html", label: "Задания" },
+  { id: "streams", href: "streams.html", label: "Стримы" },
   { id: "forum", href: "forum.html", label: "Форум" },
   { id: "play", href: "play.html", label: "Движ" },
   { id: "stream", href: "stream.html", label: "Пульт", adminOnly: true },
@@ -49,6 +50,7 @@ function headerHTML() {
   <a href="index.html" class="logo" aria-label="${esc(SITE.nick)} — на главную">${LOGO_SVG}<span>${esc(SITE.nick)}</span></a>
   <nav class="nav-links" id="navLinks" aria-label="Разделы сайта"></nav>
   <div class="header-right">
+    <div class="header-mods" id="headerMods"></div>
     <div class="user-slot" id="userSlot"></div>
     <button class="burger" type="button" aria-label="Меню" aria-expanded="false" aria-controls="navLinks"><span></span></button>
   </div>`;
@@ -66,7 +68,7 @@ function renderUserSlot() {
   if (user) {
     slot.innerHTML = `<div class="user-chip">
       <a class="user-chip-link" href="profile.html" title="Личный кабинет"${pageId === "profile" ? ' aria-current="page"' : ""}>
-        ${avatarHTML(user.nick, user.avatarUrl)}
+        ${avatarHTML(user.nick, user.avatarUrl, { extra: user.frame ? `frame-${user.frame}` : "" })}
         <span class="user-name">${esc(user.nick)}</span>
         ${user.role === "admin" ? '<span class="role-badge">admin</span>' : ""}
         <span class="sr-only">— личный кабинет</span>
@@ -80,7 +82,7 @@ function renderUserSlot() {
 
 function setUser(next) {
   const changed = (next?.id ?? null) !== (user?.id ?? null) || next?.role !== user?.role
-    || next?.nick !== user?.nick || next?.avatarUrl !== user?.avatarUrl;
+    || next?.nick !== user?.nick || next?.avatarUrl !== user?.avatarUrl || next?.frame !== user?.frame;
   user = next;
   renderNav();
   renderUserSlot();
@@ -447,5 +449,11 @@ export async function mountLayout(page) {
   initWebShooter(); // зажми мышь — выстрел паутиной
   initKonami();     // ↑↑↓↓←→←→BA — Питер пролетает через экран
   startLiveWatch(header);
+  // кнопки модулей в шапке (колокольчик, ежедневный бонус) — сами следят за входом через onUserChange
+  import("../modules.js").then((m) => m.mountSlot("header", $("#headerMods", header), { user, isAdmin: user?.role === "admin" }));
+  // квест «Найди 5 пауков»: на home, projects, forum, review и 404 прячется паук (только для вошедших)
+  import("./quest.js").then((m) => m.initQuest(page)).catch(() => {});
+  // напоминания «за 10 минут до стрима» срабатывают из любой открытой вкладки сайта
+  import("../home/schedule.js").then((m) => m.startReminders?.()).catch(() => {});
   return user;
 }

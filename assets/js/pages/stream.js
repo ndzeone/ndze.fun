@@ -4,6 +4,7 @@ import { api, toApiError } from "../data/api.js";
 import { GAMES, byId } from "../data/constants.js";
 import { $, esc, avatarHTML, timeAgo, toast, motion } from "../core/util.js";
 import { drawWheel, spinWheel } from "../core/wheel.js";
+import { MODULES, loadModule } from "../modules.js";
 
 const root = $("#streamRoot");
 const user = await mountLayout("stream");
@@ -17,6 +18,13 @@ const WIDGETS = [
   { w: "work", label: "Последняя работа", hint: "карточка 520×480" },
   { w: "wheel", label: "Колесо", hint: "появляется при прокрутке, 700×700" },
   { w: "qr", label: "QR на сайт", hint: "квадрат 300×300" },
+  { w: "schedule", label: "Следующий стрим", hint: "760×220" },
+  { w: "goals", label: "Цели канала", hint: "800×360" },
+  { w: "viewer", label: "Зритель дня", hint: "620×170" },
+  { w: "poll", label: "Опрос", hint: "720×420" },
+  { w: "giveaway", label: "Розыгрыш", hint: "720×420" },
+  { w: "bingo", label: "Бинго", hint: "520×600" },
+  { w: "teams", label: "Война команд", hint: "900×200" },
 ];
 const overlayUrl = (w) => new URL(`overlay.html?w=${w}&key=${state.overlayKey}`, location.href).href;
 const errText = (e) => esc(toApiError(e).message);
@@ -77,7 +85,29 @@ function shell() {
       <a class="btn btn-ghost btn-sm" href="play.html#canvas">Открыть холст</a>
       <button class="btn btn-danger btn-sm" type="button" data-clear-canvas>Очистить холст</button>
     </div>
+  </section>
+
+  <section class="st-block" aria-labelledby="modTitle">
+    <div class="section-head"><span class="section-index">06</span><h2 id="modTitle">Ещё инструменты</h2></div>
+    <div class="st-mod-tabs" role="tablist" id="modTabs">${MODULES.stream.map((m, i) => `<button type="button" role="tab" aria-selected="${i === 0}" data-mod-tab="${m.id}"><span aria-hidden="true">${m.icon}</span>${esc(m.label)}</button>`).join("")}</div>
+    <div class="st-mod-panel" id="modPanel"></div>
   </section>`;
+}
+
+/* ---------- Модули пульта (assets/js/admin/*.js) ---------- */
+let modMounted = null;
+async function showModuleTab(id) {
+  const entry = MODULES.stream.find((m) => m.id === id);
+  if (!entry) return;
+  document.querySelectorAll("[data-mod-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.modTab === id)));
+  modMounted?.destroy?.();
+  modMounted = null;
+  const panel = $("#modPanel");
+  panel.innerHTML = '<div class="skeleton st-skel"></div>';
+  const mod = await loadModule(entry);
+  if (!mod?.mount) { panel.innerHTML = `<p class="muted">Модуль «${esc(entry.label)}» скоро появится.</p>`; return; }
+  panel.replaceChildren();
+  modMounted = mod.mount(panel, { isAdmin: true }) || null;
 }
 
 /* ---------- Колесо и текущее задание ---------- */
@@ -166,6 +196,7 @@ async function load() {
   if (state.wheel) showResult(state.wheel, false);
   renderBets();
   renderWhitelist();
+  if (MODULES.stream[0]) showModuleTab(MODULES.stream[0].id);
 }
 
 function showResult(spin, fresh) {
@@ -181,6 +212,8 @@ async function copy(text, what = "Скопировано") {
 
 root.addEventListener("click", async (e) => {
   const t = e.target;
+  const modTab = t.closest("[data-mod-tab]");
+  if (modTab) return showModuleTab(modTab.dataset.modTab);
   if (t.closest("[data-spin]")) {
     if (spinning) return;
     const btn = t.closest("[data-spin]");

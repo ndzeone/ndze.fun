@@ -79,7 +79,9 @@ function route_task_create(): array
     $t = now_db();
     q('INSERT INTO tasks (id, user_id, game, title, description, difficulty, status, admin_note, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)',
         [$id, $me['id'], $game, $title, $description, to_difficulty($difficulty), 'new', $t, $t]);
-    return task_get_view($id, $me);
+    $view = task_get_view($id, $me);
+    event_emit('task.created', ['task' => $view]);
+    return $view;
 }
 
 function route_task_vote(): array
@@ -118,7 +120,13 @@ function route_task_update(): array
     }
     $params[] = $task['id'];
     q('UPDATE tasks SET ' . implode(', ', $sets) . ' WHERE id = ?', $params);
-    return task_get_view($task['id'], $me);
+    $view = task_get_view($task['id'], $me);
+    if (array_key_exists('status', $b) && $b['status'] !== $task['status']) {
+        $msg = ['accepted' => 'принято', 'live' => 'сейчас выполняется на стриме 🔴', 'done' => 'выполнено на стриме 🎉', 'rejected' => 'отклонено'][$b['status']] ?? null;
+        if ($msg && $task['user_id'] !== $me['id']) notify($task['user_id'], 'task', "Твоё задание «{$view['title']}» $msg", 'tasks.html');
+        event_emit('task.updated', ['task' => $view, 'from' => $task['status']]);
+    }
+    return $view;
 }
 
 function route_task_delete(): ?array
