@@ -276,3 +276,55 @@ CREATE TABLE IF NOT EXISTS game_scores (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO schema_version (version, applied_at) VALUES (3, UTC_TIMESTAMP(3));
+
+-- v4: форум. Разделы — константа FORUM_SECTIONS в api/lib/forum.php (news и rules пишет только админ).
+-- project — id проекта из SITE.projects (config.js) или 'future' / NULL. Тело — Markdown (на клиенте marked + DOMPurify).
+CREATE TABLE IF NOT EXISTS forum_threads (
+  id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  section VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  project VARCHAR(32) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  title VARCHAR(120) NOT NULL,
+  body MEDIUMTEXT NOT NULL,
+  pinned TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  locked TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  replies INT UNSIGNED NOT NULL DEFAULT 0,
+  views INT UNSIGNED NOT NULL DEFAULT 0,
+  last_post_at DATETIME(3) NOT NULL,
+  last_user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  created_at DATETIME(3) NOT NULL,
+  updated_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  KEY ix_ft_section (section, pinned, last_post_at),
+  KEY ix_ft_last (last_post_at),
+  KEY ix_ft_user (user_id),
+  CONSTRAINT fk_ft_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_ft_last_user FOREIGN KEY (last_user_id) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
+CREATE TABLE IF NOT EXISTS forum_posts (
+  id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  thread_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  body TEXT NOT NULL,
+  created_at DATETIME(3) NOT NULL,
+  updated_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  KEY ix_fp_thread (thread_id, created_at),
+  KEY ix_fp_user (user_id),
+  CONSTRAINT fk_fp_thread FOREIGN KEY (thread_id) REFERENCES forum_threads (id) ON DELETE CASCADE,
+  CONSTRAINT fk_fp_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
+-- Лайки тем и сообщений: kind 't' — тема, 'p' — сообщение.
+CREATE TABLE IF NOT EXISTS forum_likes (
+  kind CHAR(1) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  target_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  user_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  created_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (kind, target_id, user_id),
+  KEY ix_fl_user (user_id),
+  CONSTRAINT fk_fl_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO schema_version (version, applied_at) VALUES (4, UTC_TIMESTAMP(3));

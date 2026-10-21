@@ -89,6 +89,10 @@ api/schema.sql             таблицы MySQL; применяется авто
 | POST | `me/minecraft` · `me/avatar/minecraft` | `{ nick \| null }` | `{ minecraft }` / `User` (голова скина) | вход |
 | POST | `whitelist/request` · GET `whitelist` · POST `whitelist/update` | `{ server }` / — / `{ id, status, note }` | заявки в вайтлист Penta | вход / админ / админ |
 | GET | `game/start` · POST `game/score` · GET `game/top` | `{ score }` | рекорды игры на 404 (≤ 80 очков в секунду забега) | вход / вход / все |
+| GET | `forum` · `forum/threads` · `forum/thread` | `section`, `project`, `q`, `page` / `id`, `page` (`last`) | обзор (разделы, новости, свежие темы) / список тем / тема с ответами | все |
+| POST | `forum/thread` · `forum/post` | `{ section, project?, title, body }` / `{ threadId, body }` | `{ id }` / `{ id, page }`; news и rules — только админ, в закрытую тему — только админ | вход |
+| POST | `forum/edit` · `forum/delete` · `forum/like` | `{ kind: thread\|post, id, title?, body }` | правка/удаление — автор или админ; лайк — `{ likes, myLike }` | вход |
+| POST | `forum/moderate` | `{ id, pinned?, locked? }` | `null` | админ |
 | GET | `stats` | — | `Stats` | админ |
 | GET | `health` | — | `{ php, db, schema, storage, gd, curl }` (true/false + версия php) | все |
 | GET | `health/discord` | — | `{ reachable, ms, error? }` — доступен ли discord.com с сервера | админ |

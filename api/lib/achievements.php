@@ -32,6 +32,9 @@ function progress_metrics(?string $userId = null): array
     $put(q_all('SELECT user_id AS uid, COUNT(*) AS n FROM canvas_log' . ($userId === null ? ' WHERE user_id IS NOT NULL' : ' WHERE user_id = ?') . ' GROUP BY user_id', $p), ['n' => 'pixels']);
     $put(q_all('SELECT user_id AS uid, MAX(score) AS n FROM game_scores' . $w('user_id') . ' GROUP BY user_id', $p), ['n' => 'gameBest']);
     $put(q_all('SELECT user_id AS uid, 1 AS n FROM user_minecraft' . $w('user_id'), $p), ['n' => 'minecraft']);
+    $put(q_all('SELECT uid, SUM(n) AS n FROM (SELECT user_id AS uid, COUNT(*) AS n FROM forum_threads' . $w('user_id') . ' GROUP BY user_id
+                UNION ALL SELECT user_id AS uid, COUNT(*) AS n FROM forum_posts' . $w('user_id') . ' GROUP BY user_id) f GROUP BY uid', array_merge($p, $p)),
+        ['n' => 'forumPosts']);
     // король крыш — лучший результат в игре за 7 дней
     $king = q_one('SELECT user_id FROM game_scores WHERE created_at >= ? ORDER BY score DESC, created_at ASC LIMIT 1',
         [gmdate('Y-m-d H:i:s', time() - 7 * 86400)]);
@@ -57,6 +60,7 @@ function badge_defs(): array
         'miner' => ['Майнкрафтер', 'Указать ник Minecraft в кабинете', '⛏', 'minecraft', 1],
         'runner' => ['Раннер', 'Набрать 1000 очков в игре на странице 404', '🏃', 'gameBest', 1000],
         'roof_king' => ['Король крыш', 'Лучший результат недели в игре', '🏆', 'roofKing', 1],
+        'speaker' => ['Голос сообщества', '10 сообщений на форуме', '💬', 'forumPosts', 10],
     ];
 }
 
@@ -65,7 +69,7 @@ function xp_of(array $m): int
     $g = static fn(string $k) => (int) ($m[$k] ?? 0);
     return $g('subs') * 20 + $g('ideal') * 60 + $g('extraVersions') * 10 + $g('tasks') * 15 + $g('tasksDone') * 50
         + $g('votesReceived') * 3 + $g('comments') * 2 + $g('battleVotes') * 2 + $g('betsWon') * 20
-        + min($g('pixels'), 500) + min(intdiv($g('gameBest'), 100), 50) + $g('minecraft') * 10;
+        + min($g('pixels'), 500) + min(intdiv($g('gameBest'), 100), 50) + $g('minecraft') * 10 + min($g('forumPosts'), 200) * 3;
 }
 
 /** Порог уровня L: 50·L·(L−1) XP (2 → 100, 3 → 300, 4 → 600, 5 → 1000…). */

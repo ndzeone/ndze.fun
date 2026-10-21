@@ -21,6 +21,7 @@ export const NAV = [
   { id: "repos", href: "repos.html", label: "GitHub" },
   { id: "review", href: "review.html", label: "Оценка работ" },
   { id: "tasks", href: "tasks.html", label: "Задания" },
+  { id: "forum", href: "forum.html", label: "Форум" },
   { id: "play", href: "play.html", label: "Движ" },
   { id: "stream", href: "stream.html", label: "Пульт", adminOnly: true },
   { id: "admin", href: "admin.html", label: "Админка", adminOnly: true },

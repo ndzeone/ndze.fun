@@ -1,6 +1,6 @@
 import { SITE } from "../config.js";
 import { mountLayout, DISCORD_SVG } from "../core/layout.js";
-import { $, $$, esc, lerp, motion, finePointer, toast, initial, avatarHTML, plural } from "../core/util.js";
+import { $, $$, esc, lerp, motion, finePointer, toast, initial, avatarHTML, plural, timeAgo } from "../core/util.js";
 import { api } from "../data/api.js";
 import { ROOT, people, loadDiscord, iconUrl, liveInvite, minecraftStatus, showMinecraft, setCount } from "../core/community.js";
 import { mouse, onFrame, initReveal, initMagnetic, initTilt } from "../core/fx.js";
@@ -200,6 +200,22 @@ async function renderDiscord(data) {
   for (const box of $$("[data-ip]", grid)) minecraftStatus(box.dataset.ip).then((st) => showMinecraft(box, st));
 }
 
+/* ---------- Новости с форума ---------- */
+async function renderNews() {
+  const box = $("#homeNews");
+  let news = [];
+  try { news = (await api.forum()).news; } catch { /* форум недоступен — покажем заглушку */ }
+  box.innerHTML = news.length
+    ? news.map((t) => `<a class="card glass home-news-card" href="forum.html#/t/${encodeURIComponent(t.id)}">
+        <span class="cc-kicker">${t.pinned ? "📌 Важно" : "📢 Новость"} · ${esc(timeAgo(t.createdAt))}</span>
+        <h3>${esc(t.title)}</h3>
+        <p class="muted">${esc(t.excerpt)}</p>
+        <span class="cc-go">Читать · 💬 ${t.replies} →</span>
+      </a>`).join("")
+    : `<a class="card glass home-news-card" href="forum.html"><span class="cc-kicker">📢 Форум</span><h3>Новости и правила проектов</h3>
+        <p class="muted">Анонсы стримов, правила Penta SMP и MythosMC и обсуждения зрителей — всё на форуме.</p><span class="cc-go">Открыть форум →</span></a>`;
+}
+
 /* ---------- Зал славы: лидеры по опыту + работа недели из битвы ---------- */
 async function renderFame() {
   const grid = $("#fame-grid");
@@ -251,6 +267,7 @@ $("#dcGrid").addEventListener("click", async (e) => {
 
 renderTwitch();
 renderYouTube();
+renderNews();
 renderFame();
 const discordData = await loadDiscord();
 await renderDiscord(discordData);

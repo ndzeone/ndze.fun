@@ -19,6 +19,8 @@ const RATE_LIMITS = [
     'minecraft' => [10, 86400],   // смена ника Minecraft: 10 / сутки
     'whitelist' => [5, 86400],    // заявки в вайтлист: 5 / сутки
     'game' => [120, 3600],        // результаты игры: 120 / час
+    'forum_thread' => [10, 86400], // новые темы на форуме: 10 / сутки
+    'forum_post' => [60, 3600],   // ответы на форуме: 60 / час
 ];
 
 function rate_limit_conf(string $action): ?array

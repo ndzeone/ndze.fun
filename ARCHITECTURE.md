@@ -9,6 +9,7 @@
 |---|---|---|---|
 | `index.html` | `home` | Главная: герой с Человеком-пауком, проекты, Twitch, YouTube, Discord-серверы | `pages/home.js`, `home.css` |
 | `projects.html` | `projects` | Мои и совместные проекты (список — `SITE.projects` в config.js) | `pages/projects.js`, `projects.css` |
+| `forum.html#/…` | `forum` | Форум: новости, правила проектов, идеи, вопросы, общение (Markdown через `core/markdown.js`) | `pages/forum.js`, `forum.css` |
 | `play.html` | `play` | «Движ»: битва работ, ставки баллами, общий холст, лидеры, мини-игра | `pages/play.js`, `play.css` (+ `core/place.js`, `core/runner.js`) |
 | `stream.html` | `stream` | Пульт стрима (админ): колесо заданий, оверлеи OBS, ставки, вайтлист, холст | `pages/stream.js`, `stream.css`, `core/wheel.js` |
 | `overlay.html?w=…&key=…` | — | Оверлеи для OBS (прозрачный фон, без шапки) | `pages/overlay.js`, `overlay.css` |

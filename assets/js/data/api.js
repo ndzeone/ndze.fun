@@ -82,6 +82,16 @@
 //   api.gameStart()           → { startedAt }   (вход; перед каждым забегом)
 //   api.gameScore(score)      → { score, best, rank }   (не больше 80 очков на секунду забега)
 //   api.gameTop()             → { all: [{user, score}], week: [{user, score}] }
+//   api.forum()               → { sections: [{id,label,adminOnly,canPost,threads,posts,lastPostAt}], news: ThreadLean[], latest: ThreadLean[] }
+//                                ThreadLean = { id, section, project, title, excerpt, pinned, locked, replies, views, likes,
+//                                author: {id,nick,avatarUrl,isAdmin}, lastPostAt, lastNick, createdAt }
+//   api.forumThreads({ section?, project?, q?, page? }) → { items: ThreadLean[], total, page, pages }
+//   api.forumThread(id, page|"last") → { thread: { …ThreadLean, body (Markdown), myLike, edited, canEdit, canReply, canModerate },
+//                                       posts: { items: [{ id, body, author, likes, myLike, createdAt, edited, canEdit }], page, pages } }
+//   api.forumCreateThread({ section, project?, title, body }) → { id }   (news и rules — только админ)
+//   api.forumReply(threadId, body) → { id, page };  api.forumEdit("thread"|"post", id, { title?, body })
+//   api.forumDelete("thread"|"post", id);  api.forumLike("thread"|"post", id) → { likes, myLike }
+//   api.forumModerate(id, { pinned?, locked? })   (админ)
 //   api.stream() / api.updateStream({ regenerateKey?, currentTaskId? }) / api.spinWheel()   (админ, пульт)
 //   api.overlay(key)          → { currentTask, topTasks, lastWork, wheel, live }   (оверлеи OBS по ключу)
 //

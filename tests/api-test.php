@@ -1064,6 +1064,63 @@ check('game/top lists B', isOk($r) && in_array($B->user['id'], array_map(fn($x) 
 foreach ($bIds as $id) { req($admin, 'POST', 'submission/delete', [], ['id' => $id]); unset($LEDGER['subs'][$id]); }
 reset_rl();
 
+/* ============================== Форум ============================== */
+section('forum');
+reset_rl();
+$r = req($guest, 'GET', 'forum');
+check('GET forum → 5 sections, guest cannot post', isOk($r) && count(data($r)['sections'] ?? []) === 5 && !array_filter(data($r)['sections'], fn($s) => $s['canPost']), desc($r));
+$secs = array_column(data(req($A, 'GET', 'forum'))['sections'] ?? [], 'canPost', 'id');
+check('user can post in ideas/help/talk, not news/rules', ($secs['ideas'] ?? false) && !($secs['news'] ?? true) && !($secs['rules'] ?? true), json_encode($secs));
+expectErr('thread as guest → 401', req($guest, 'POST', 'forum/thread', [], ['section' => 'ideas', 'title' => 'Идея', 'body' => 'текст']), 401);
+expectErr('user posts news → 403', req($A, 'POST', 'forum/thread', [], ['section' => 'news', 'title' => 'Фейк-новость', 'body' => 'текст']), 403, 'forbidden');
+expectErr('thread: short title + empty body → 400', req($A, 'POST', 'forum/thread', [], ['section' => 'ideas', 'title' => 'ab', 'body' => '']), 400, 'validation', ['title', 'body']);
+expectErr('thread: bad section → 400', req($A, 'POST', 'forum/thread', [], ['section' => 'nope', 'title' => 'Заголовок', 'body' => 'x']), 400, 'validation', ['section']);
+$r = req($A, 'POST', 'forum/thread', [], ['section' => 'ideas', 'project' => 'penta', 'title' => "Идея $RUN: мини-игры", 'body' => "**Хочу** мини-игры\n\n<script>alert(1)</script>"]);
+$ft = data($r)['id'] ?? '';
+check('user creates thread in ideas', isOk($r) && preg_match(UUID_RE, $ft), desc($r));
+$r = req($admin, 'POST', 'forum/thread', [], ['section' => 'rules', 'project' => 'penta', 'title' => "Правила Penta $RUN", 'body' => "## Правила\n1. Не гриферить"]);
+$rulesId = data($r)['id'] ?? '';
+check('admin creates rules thread', isOk($r), desc($r));
+$r = req($guest, 'GET', 'forum/threads', ['section' => 'ideas']);
+check('threads list contains the idea', isOk($r) && in_array($ft, ids(data($r)['items'] ?? []), true), desc($r));
+$r = req($guest, 'GET', 'forum/threads', ['section' => 'rules', 'project' => 'penta']);
+check('project filter returns rules thread', isOk($r) && in_array($rulesId, ids(data($r)['items'] ?? []), true), desc($r));
+$r = req($guest, 'GET', 'forum/threads', ['q' => "Идея $RUN"]);
+check('search by title', isOk($r) && in_array($ft, ids(data($r)['items'] ?? []), true), desc($r));
+$r = req($guest, 'GET', 'forum/threads', ['q' => '%']);
+check('search with % is literal (no crash)', isOk($r), desc($r));
+$r = req($guest, 'GET', 'forum/thread', ['id' => $ft]);
+$th = data($r)['thread'] ?? [];
+check('guest reads thread: body raw markdown, canReply false', isOk($r) && str_contains((string) ($th['body'] ?? ''), '**Хочу**') && ($th['canReply'] ?? true) === false && ($th['author']['nick'] ?? '') === $A->user['nick'], desc($r));
+$r = req($B, 'POST', 'forum/post', [], ['threadId' => $ft, 'body' => 'Поддерживаю!']);
+$fp = data($r)['id'] ?? '';
+check('B replies → page 1', isOk($r) && (data($r)['page'] ?? 0) === 1, desc($r));
+$r = req($guest, 'GET', 'forum/thread', ['id' => $ft]);
+check('thread shows 1 reply', isOk($r) && (data($r)['thread']['replies'] ?? 0) === 1 && count(data($r)['posts']['items'] ?? []) === 1, desc($r));
+expectErr('moderate as user → 403', req($A, 'POST', 'forum/moderate', [], ['id' => $ft, 'locked' => true]), 403);
+expectOk('admin locks thread', req($admin, 'POST', 'forum/moderate', [], ['id' => $ft, 'locked' => true, 'pinned' => true]));
+expectErr('reply to locked thread → 403', req($B, 'POST', 'forum/post', [], ['threadId' => $ft, 'body' => 'ещё']), 403, 'forbidden');
+expectOk('admin can reply to locked thread', req($admin, 'POST', 'forum/post', [], ['threadId' => $ft, 'body' => 'Закрыл, спасибо за идею']));
+$r = req($guest, 'GET', 'forum/threads', ['section' => 'ideas']);
+check('pinned thread is first in section', isOk($r) && (data($r)['items'][0]['id'] ?? '') === $ft && data($r)['items'][0]['pinned'] === true, desc($r));
+expectOk('admin unlocks', req($admin, 'POST', 'forum/moderate', [], ['id' => $ft, 'locked' => false, 'pinned' => false]));
+$r = req($B, 'POST', 'forum/like', [], ['kind' => 'thread', 'id' => $ft]);
+check('like thread → 1, myLike', isOk($r) && data($r)['likes'] === 1 && data($r)['myLike'] === true, desc($r));
+$r = req($B, 'POST', 'forum/like', [], ['kind' => 'thread', 'id' => $ft]);
+check('unlike thread → 0', isOk($r) && data($r)['likes'] === 0 && data($r)['myLike'] === false, desc($r));
+expectErr('B edits A\'s thread → 403', req($B, 'POST', 'forum/edit', [], ['kind' => 'thread', 'id' => $ft, 'title' => 'Взлом', 'body' => 'x']), 403);
+expectOk('A edits own thread', req($A, 'POST', 'forum/edit', [], ['kind' => 'thread', 'id' => $ft, 'title' => "Идея $RUN: мини-игры v2", 'body' => 'Обновил']));
+expectErr('A deletes B\'s post → 403', req($A, 'POST', 'forum/delete', [], ['kind' => 'post', 'id' => $fp]), 403);
+expectOk('B deletes own post', req($B, 'POST', 'forum/delete', [], ['kind' => 'post', 'id' => $fp]));
+$r = req($guest, 'GET', 'forum/thread', ['id' => $ft]);
+check('reply count decremented, edited flag', isOk($r) && (data($r)['thread']['replies'] ?? -1) === 1 && (data($r)['thread']['edited'] ?? false) === true, desc($r));
+$r = req($guest, 'GET', 'forum');
+check('forum overview: latest includes thread', isOk($r) && in_array($ft, ids(data($r)['latest'] ?? []), true), desc($r));
+expectOk('A deletes own thread', req($A, 'POST', 'forum/delete', [], ['kind' => 'thread', 'id' => $ft]));
+expectErr('deleted thread → 404', req($guest, 'GET', 'forum/thread', ['id' => $ft]), 404, 'not_found');
+req($admin, 'POST', 'forum/delete', [], ['kind' => 'thread', 'id' => $rulesId]);
+reset_rl();
+
 /* ============================== Discord ============================== */
 section('discord');
 $dl = $BASE . '/api/discord-login.php';

@@ -241,6 +241,16 @@ export function createPhpBackend() {
     gameScore: (score) => post("game/score", { score: Math.max(0, Math.floor(score)) }),
     gameTop: () => call("game/top"),
 
+    forum: () => call("forum"),
+    forumThreads: ({ section, project, q, page } = {}) => call("forum/threads", { query: { section, project, q, page } }),
+    forumThread: (id, page) => call("forum/thread", { query: { id, page } }),
+    forumCreateThread: ({ section, project, title, body }) => post("forum/thread", { section, project: project || null, title, body }),
+    forumReply: (threadId, body) => post("forum/post", { threadId, body }),
+    forumEdit: (kind, id, { title, body }) => post("forum/edit", title === undefined ? { kind, id, body } : { kind, id, title, body }),
+    forumDelete: (kind, id) => post("forum/delete", { kind, id }),
+    forumLike: (kind, id) => post("forum/like", { kind, id }),
+    forumModerate: (id, patch) => post("forum/moderate", { id, ...patch }),
+
     stream: () => call("stream"),
     updateStream: (patch) => post("stream", patch),
     spinWheel: () => post("wheel/spin"),

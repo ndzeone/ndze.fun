@@ -137,6 +137,14 @@ html.is-live .spidey .lenses { animation: liveLens 1.6s ease-in-out infinite; }
 .game-pill.gta { color: #4aa8ff; border-color: rgba(74, 168, 255, .45); background: rgba(74, 168, 255, .1); }
 .cc-go { margin-top: auto; font-weight: 700; color: var(--lime); }
 
+/* ---------- Новости с форума ---------- */
+.home-news { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+.home-news .skeleton { min-height: 200px; }
+.home-news-card { display: grid; align-content: start; gap: 10px; padding: 24px; transition: transform .35s var(--ease), border-color .3s; }
+.home-news-card:hover { transform: translateY(-4px); border-color: rgba(93, 214, 44, .6); }
+.home-news-card h3 { font: 700 1.25rem var(--pixel); text-transform: uppercase; overflow-wrap: anywhere; }
+.home-news-card p { font-size: .92rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
 /* ---------- Зал славы ---------- */
 .fame { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
 .fame .skeleton { min-height: 280px; }

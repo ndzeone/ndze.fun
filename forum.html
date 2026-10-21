@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Форум — ndze</title>
+  <meta name="description" content="Форум ndze: новости, правила проектов Penta SMP и MythosMC, идеи, вопросы и общение зрителей.">
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Pixelify+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/forum.css">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <main id="main">
+    <div id="forumRoot" aria-live="polite"><div class="skeleton fr-skel"></div></div>
+  </main>
+
+  <dialog class="modal wide" id="composer" aria-labelledby="cmpTitle">
+    <div class="modal-frame"><div class="modal-card">
+      <span class="modal-ticks" aria-hidden="true"><i></i><i></i><i></i></span>
+      <button class="modal-close" type="button" data-close aria-label="Закрыть">✕</button>
+      <p class="modal-logo">ndze · форум</p>
+      <h2 id="cmpTitle">Новая тема</h2>
+      <form id="cmpForm" novalidate>
+        <div class="fr-cmp-row" id="cmpMeta">
+          <div class="field">
+            <select id="cSection" name="section" aria-describedby="cSection-err"></select>
+            <label for="cSection">Раздел</label><span class="error-msg" id="cSection-err"></span>
+          </div>
+          <div class="field">
+            <select id="cProject" name="project"></select>
+            <label for="cProject">Проект (необязательно)</label><span class="error-msg"></span>
+          </div>
+        </div>
+        <div class="field" id="cTitleField">
+          <input id="cTitle" name="title" type="text" placeholder=" " maxlength="120" autocomplete="off" aria-describedby="cTitle-err">
+          <label for="cTitle">Заголовок</label><span class="error-msg" id="cTitle-err"></span>
+        </div>
+        <div class="fr-editor">
+          <div class="fr-editor-bar">
+            <div class="fr-editor-tabs" role="tablist">
+              <button type="button" role="tab" aria-selected="true" data-mode="write">Текст</button>
+              <button type="button" role="tab" aria-selected="false" data-mode="preview">Предпросмотр</button>
+            </div>
+            <button class="btn btn-ghost btn-xs" type="button" id="cTemplate" hidden>📜 Вставить шаблон правил</button>
+          </div>
+          <div class="field">
+            <textarea id="cBody" name="body" placeholder=" " rows="10" maxlength="10000" aria-describedby="cBody-err cBody-hint"></textarea>
+            <label for="cBody">Сообщение</label>
+            <span class="hint" id="cBody-hint">Markdown: **жирный**, *курсив*, ## заголовок, - список, [ссылка](https://…)</span>
+            <span class="error-msg" id="cBody-err"></span>
+          </div>
+          <div class="fr-preview md-body" id="cPreview" hidden></div>
+        </div>
+        <p class="form-error" role="alert"></p>
+        <button class="btn btn-primary btn-block" type="submit"><span id="cSubmitText">Опубликовать</span><span class="spinner" aria-hidden="true"></span></button>
+      </form>
+    </div></div>
+  </dialog>
+
+  <script type="module" src="assets/js/pages/forum.js"></script>
+</body>
+</html>
