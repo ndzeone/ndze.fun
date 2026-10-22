@@ -28,6 +28,18 @@ export const NAV = [
   { id: "admin", href: "admin.html", label: "Админка", adminOnly: true },
 ];
 
+const NAV_ICONS = {
+  profile: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  review: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3 3 8l9 5 9-5-9-5Z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m3 13 9 5 9-5"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m3 18 9 5 9-5"/></svg>`,
+  tasks: `<svg viewBox="0 0 24 24" aria-hidden="true"><polygon fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  streams: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><polyline fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" points="17 2 12 7 7 2"/></svg>`,
+  forum: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+  play: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="6" y1="12" x2="10" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="10" x2="8" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="18" cy="10" r="1.2" fill="currentColor"/></svg>`,
+  stream: `<svg viewBox="0 0 24 24" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="10" x2="4" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="21" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="8" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="20" y1="21" x2="20" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="20" y1="12" x2="20" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="14" x2="7" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="16" x2="23" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  admin: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  logout: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+};
+
 const LOGO_SVG = `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v26M3 16h26M6.8 6.8l18.4 18.4M25.2 6.8L6.8 25.2" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="16" r="4.5" fill="currentColor"/><circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".6"/></svg>`;
 export const DISCORD_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.6 0L8.6 3a19.5 19.5 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18a19.7 19.7 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.6 19.6 0 0 0 6-3c.5-5.1-.8-9.6-3.6-13.6ZM8 15.3c-1.2 0-2.2-1.1-2.2-2.4S6.8 10.5 8 10.5s2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>`;
 const EYE_SVG =`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>`;
@@ -36,6 +48,8 @@ let user = null;
 let pageId = "home";
 const userListeners = new Set();
 let auth; // { open(tab, reason) }
+let userMenuTimer = null;
+let navMoreTimer = null;
 
 export const getUser = () => user;
 export function onUserChange(cb) {
@@ -56,25 +70,172 @@ function headerHTML() {
   </div>`;
 }
 
+function setupNavMore() {
+  const wrap = $("#navMoreWrap");
+  if (!wrap) return;
+
+  wrap.addEventListener("mouseenter", () => {
+    clearTimeout(navMoreTimer);
+    wrap.classList.add("is-open");
+  });
+  wrap.addEventListener("mouseleave", () => {
+    navMoreTimer = setTimeout(() => {
+      wrap.classList.remove("is-open");
+    }, 180);
+  });
+
+  const btn = $(".nav-more-btn", wrap);
+  btn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = !wrap.classList.contains("is-open");
+    wrap.classList.toggle("is-open", open);
+    btn.setAttribute("aria-expanded", String(open));
+  });
+
+  const panel = $(".nav-more-panel", wrap);
+  panel?.addEventListener("click", (e) => {
+    if (e.target.closest("a, button")) wrap.classList.remove("is-open");
+  });
+}
+
 function renderNav() {
-  $("#navLinks").innerHTML = NAV
-    .filter((n) => !n.adminOnly || user?.role === "admin")
+  const navEl = $("#navLinks");
+  if (!navEl) return;
+  const visible = NAV.filter((n) => !n.adminOnly || user?.role === "admin");
+  const main3 = visible.slice(0, 3);
+  const more = visible.slice(3);
+
+  let html = main3
     .map((n) => `<a href="${n.href}" class="${n.adminOnly ? "admin-link" : ""}"${n.id === pageId ? ' aria-current="page"' : ""}>${esc(n.label)}</a>`)
     .join("");
+
+  if (user) {
+    // Для мобильного меню (бургер) рендерим остальные страницы
+    html += more
+      .map((n) => `<a href="${n.href}" class="nav-mobile-only ${n.adminOnly ? "admin-link" : ""}"${n.id === pageId ? ' aria-current="page"' : ""}>${esc(n.label)}</a>`)
+      .join("");
+  } else {
+    // Для мобильного меню
+    html += more
+      .map((n) => `<a href="${n.href}" class="nav-mobile-only"${n.id === pageId ? ' aria-current="page"' : ""}>${esc(n.label)}</a>`)
+      .join("");
+    // Для десктопа (пока гость не вошёл) — аккуратное меню «Ещё ▾»
+    html += `
+      <div class="nav-more-wrap" id="navMoreWrap">
+        <button class="nav-more-btn" type="button" aria-expanded="false" aria-label="Ещё разделы сайта">
+          <span>Ещё</span>
+          <svg class="nav-more-caret" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <div class="nav-more-panel" role="menu">
+          ${more.map((n) => `
+            <a href="${n.href}" class="user-panel-item"${n.id === pageId ? ' aria-current="page"' : ""}>
+              <span class="user-panel-icon">${NAV_ICONS[n.id] || ""}</span>
+              <span class="user-panel-label">${esc(n.label)}</span>
+            </a>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  navEl.innerHTML = html;
+  setupNavMore();
+}
+
+function setupUserMenu() {
+  const menu = $("#userMenu");
+  if (!menu) return;
+
+  menu.addEventListener("mouseenter", () => {
+    clearTimeout(userMenuTimer);
+    menu.classList.add("is-open");
+  });
+  menu.addEventListener("mouseleave", () => {
+    userMenuTimer = setTimeout(() => {
+      menu.classList.remove("is-open");
+    }, 180);
+  });
+
+  const chipLink = $(".user-chip-link", menu);
+  chipLink?.addEventListener("click", (e) => {
+    // На тач-устройствах первый тап раскрывает выдвижную панель
+    if (window.matchMedia("(hover: none)").matches && !menu.classList.contains("is-open")) {
+      e.preventDefault();
+      menu.classList.add("is-open");
+    }
+  });
+
+  const panel = $("#userPanel", menu);
+  panel?.addEventListener("click", (e) => {
+    if (e.target.closest("a, button")) menu.classList.remove("is-open");
+  });
 }
 
 function renderUserSlot() {
   const slot = $("#userSlot");
+  if (!slot) return;
   if (user) {
-    slot.innerHTML = `<div class="user-chip">
-      <a class="user-chip-link" href="profile.html" title="Личный кабинет"${pageId === "profile" ? ' aria-current="page"' : ""}>
-        ${avatarHTML(user.nick, user.avatarUrl, { extra: user.frame ? `frame-${user.frame}` : "" })}
-        <span class="user-name">${esc(user.nick)}</span>
-        ${user.role === "admin" ? '<span class="role-badge">admin</span>' : ""}
-        <span class="sr-only">— личный кабинет</span>
+    const extraLinks = NAV.slice(3).filter((n) => !n.adminOnly || user.role === "admin");
+    const regularLinks = extraLinks.filter((n) => !n.adminOnly);
+    const adminLinks = extraLinks.filter((n) => n.adminOnly);
+
+    const renderItem = (n) => `
+      <a href="${n.href}" class="user-panel-item${n.adminOnly ? " admin-item" : ""}"${n.id === pageId ? ' aria-current="page"' : ""}>
+        <span class="user-panel-icon">${NAV_ICONS[n.id] || ""}</span>
+        <span class="user-panel-label">${esc(n.label)}</span>
+        ${n.adminOnly ? '<span class="user-panel-badge">admin</span>' : ""}
       </a>
-      <button class="link-btn" type="button" data-logout>Выйти</button>
-    </div>`;
+    `;
+
+    slot.innerHTML = `
+      <div class="user-menu" id="userMenu">
+        <div class="user-chip" id="userChip">
+          <a class="user-chip-link" href="profile.html" title="Личный кабинет"${pageId === "profile" ? ' aria-current="page"' : ""}>
+            ${avatarHTML(user.nick, user.avatarUrl, { extra: user.frame ? `frame-${user.frame}` : "" })}
+            <span class="user-name">${esc(user.nick)}</span>
+            ${user.role === "admin" ? '<span class="role-badge">admin</span>' : ""}
+            <svg class="user-chip-caret" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+              <path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="sr-only">— личный кабинет</span>
+          </a>
+        </div>
+
+        <div class="user-panel" id="userPanel" role="menu" aria-label="Меню пользователя">
+          <a class="user-panel-profile" href="profile.html"${pageId === "profile" ? ' aria-current="page"' : ""}>
+            ${avatarHTML(user.nick, user.avatarUrl, { extra: user.frame ? `frame-${user.frame}` : "", size: "sm" })}
+            <div class="user-panel-profile-info">
+              <div class="user-panel-name-row">
+                <span class="user-panel-nick">${esc(user.nick)}</span>
+                ${user.role === "admin" ? '<span class="role-badge">admin</span>' : ""}
+              </div>
+              <span class="user-panel-hint">Личный кабинет <span aria-hidden="true">→</span></span>
+            </div>
+          </a>
+
+          <div class="user-panel-divider"></div>
+          <div class="user-panel-section-title">Разделы</div>
+          <div class="user-panel-nav">
+            ${regularLinks.map(renderItem).join("")}
+          </div>
+
+          ${adminLinks.length ? `
+            <div class="user-panel-divider"></div>
+            <div class="user-panel-section-title admin">Управление</div>
+            <div class="user-panel-nav">
+              ${adminLinks.map(renderItem).join("")}
+            </div>
+          ` : ""}
+
+          <div class="user-panel-divider"></div>
+          <button class="user-panel-item user-panel-logout" type="button" data-logout>
+            <span class="user-panel-icon">${NAV_ICONS.logout}</span>
+            <span class="user-panel-label">Выйти</span>
+          </button>
+        </div>
+      </div>
+    `;
+    setupUserMenu();
   } else {
     slot.innerHTML = `<button class="btn btn-primary btn-sm" type="button" data-open-auth="login">Войти</button>`;
   }
@@ -428,11 +589,24 @@ export async function mountLayout(page) {
   });
 
   document.addEventListener("click", async (e) => {
+    if (!e.target.closest("#userMenu")) {
+      $("#userMenu")?.classList.remove("is-open");
+    }
+    if (!e.target.closest("#navMoreWrap")) {
+      $("#navMoreWrap")?.classList.remove("is-open");
+    }
     const openBtn = e.target.closest("[data-open-auth]");
     if (openBtn) openAuth(openBtn.dataset.openAuth || "login", openBtn.dataset.reason || "");
     if (e.target.closest("[data-logout]")) {
       await api.signOut();
       toast("Ты вышел из аккаунта");
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      $("#userMenu")?.classList.remove("is-open");
+      $("#navMoreWrap")?.classList.remove("is-open");
     }
   });
 
